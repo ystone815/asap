@@ -4,6 +4,7 @@
 *.v
 
 # sbt specific
+generated/
 .bsp/
 .sbt/
 .scala_dependencies
