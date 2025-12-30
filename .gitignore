@@ -1,0 +1,18 @@
+*.class
+*.log
+*.vcd
+*.v
+
+# sbt specific
+.bsp/
+.sbt/
+.scala_dependencies
+.history/
+.cache
+target/
+project/target/
+project/project/target/
+
+# IDEA
+.idea/
+*.iml
