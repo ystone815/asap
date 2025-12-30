@@ -1,0 +1,31 @@
+[0m[[0m[0mdebug[0m] [0m[0mPackaging /home/stone/assap/target/scala-2.12/assap_2.12-0.1.jar ...[0m
+[0m[[0m[0mdebug[0m] [0m[0mInput file mappings:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/examples[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/examples[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/examples/BlinkingLed$$anon$1.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/examples/BlinkingLed$$anon$1.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/examples/BlinkingLedMain$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/examples/BlinkingLedMain$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/examples/BlinkingLedMain$delayedInit$body.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/examples/BlinkingLedMain$delayedInit$body.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/examples/BlinkingLedMain.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/examples/BlinkingLedMain.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/examples/BlinkingLed.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/examples/BlinkingLed.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/perf[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/perf[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/perf/PerfEntry$delayedInit$body.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/perf/PerfEntry$delayedInit$body.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/perf/PerfEntry.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/perf/PerfEntry.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/perf/PerfEntry$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/perf/PerfEntry$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/perf/WorkloadGenerator.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/perf/WorkloadGenerator.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/perf/Transaction$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/perf/Transaction$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	assap/perf/Transaction.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/stone/assap/target/scala-2.12/classes/assap/perf/Transaction.class[0m
+[0m[[0m[0mdebug[0m] [0m[0mDone packaging.[0m
