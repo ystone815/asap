@@ -39,12 +39,12 @@ class SimpleAxiSram(
   io.arw_ready_debug := ram.io.axi.arw.ready
 
   // Use the implicit rich class from AxiUtils for easier connection
-  import assap.design.AxiUtils._
+  import assap.design.base.AxiUtils._
   io.axi.drive(ram.io.axi)
 }
 
 object AxiSramMain extends App {
-  import assap.design.AssapVerilog
+  import assap.design.base.AssapVerilog
 
   try {
     AssapVerilog(

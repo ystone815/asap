@@ -3,7 +3,7 @@ package assap.perf
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib.bus.amba4.axi._
-import assap.design.AxiUtils._
+import assap.design.base.AxiUtils._
 import assap.examples.SimpleAxiSram
 
 // Top level component connecting Generator and SRAM

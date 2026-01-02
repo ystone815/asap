@@ -1,56 +1,63 @@
-# ASSAP (Architecture & System Simulation / Analysis Platform)
+# ASSAP (Architecture Simulation & Synthesizable Architecture Platform)
 
-**ASSAP** is a SpinalHDL-based project designed for hardware architecture exploration, system-level verification, and performance modeling. It bridges the gap between RTL implementation and high-level architectural simulation.
+ASSAP is a dual-purpose platform designed for both **Synthesizable RTL Design** (using SpinalHDL) and **High-Level Performance Modeling** (using Scala). It aims to bridge the gap between architectural exploration and hardware implementation.
 
-## Project Structure
+## Key Features
 
-- **`src/main/scala/assap/design`**: Core hardware IP and system integration.
-  - `AssapSystem`: Top-level integration of Master and Slave.
-  - `SimpleAxiMaster`: A synthesizable AXI4 hardware driver with FSM.
-  - `AxiUtils`: Utilities for AXI4 connections (resizing, direct master-slave connection).
-- **`src/main/scala/assap/perf`**: Performance modeling and traffic generation.
-  - `TrafficGenerator`: Synthesizable, LFSR-based AXI4 traffic generator.
-  - `ArchSim`: Pure software, cycle-accurate architectural simulator (fast prototyping).
-  - `NativePerf`: Simplified request/response bus model.
-- **`src/main/scala/assap/examples`**: Example implementations and simulations.
+### 1. Synthesizable RTL Design (`assap.design`)
+*   **SpinalHDL based:** High-productivity hardware description.
+*   **AXI4 Support:** robust AXI4 Master/Slave implementations and utilities.
+*   **AssapSystem:** A reference SoC structure connecting Hardware Masters to SRAM Slaves.
+*   **Base Library:** Common synthesizable utilities in `assap.design.base`.
 
-## Design Philosophy
+### 2. Performance Modeling (`assap.perf`)
+*   **Cycle-Accurate Modeling:** Fast simulation for architectural exploration.
+*   **Generic Components:** Type-agnostic base library (`Fifo[T]`, `Arbiter[T]`, `Router[T]`, `DelayLine[T]`).
+*   **Packet-based Simulation:** Flexible `Packet` structure for NoC/Interconnect modeling.
+*   **TDD Approach:** Fully tested components using ScalaTest.
 
-### 1. Hardware-Driven Verification
-Instead of relying solely on software testbenches (SW driving signals), ASSAP prefers **Hardware Masters** (`SimpleAxiMaster`).
-- **Why?** It verifies the system closer to the real deployment scenario (FPGA/ASIC) and allows checking deadlock conditions (e.g., AW/W handshake dependencies).
+## Directory Structure
 
-### 2. Dual-Layer Performance Modeling
-ASSAP provides two layers of performance modeling:
-1.  **RTL-Accurate (`TrafficGenerator`):** Synthesizable logic. Useful for FPGA emulation and precise cycle measurements with real IPs.
-2.  **Architectural (`ArchSim`):** Pure Scala software logic running on the simulator clock. Useful for rapid bottleneck analysis, infinite queue experimentation, and high-level topology exploration without writing RTL.
+```
+src/
+├── main/scala/assap/
+│   ├── design/             # Synthesizable RTL
+│   │   ├── base/           # Common RTL utilities (AxiUtils, Config)
+│   │   └── ...             # IP and System definitions
+│   ├── perf/               # Performance Modeling
+│   │   ├── base/           # Generic Sim Components (Fifo, Router, etc.)
+│   │   └── types/          # Data structures (Packet)
+│   └── examples/           # Runnable examples for both RTL and Perf
+└── test/scala/assap/       # Unit Tests
+    └── perf/base/          # Tests for Performance Library
+```
 
-### 3. Visibility
-Even in pure software simulations (`ArchSim`), internal states (queue sizes, throughput) are mapped to dummy hardware ports to enable **VCD Tracing**. This allows visual debugging using tools like GTKWave.
+## Getting Started
 
-## How to Run
+### Prerequisites
+*   Java JDK 8 or 17+
+*   sbt (Scala Build Tool)
+*   Verilator (for RTL simulation)
 
-### System Integration Test
-Runs the `AssapSystem` with a Hardware Master writing/reading to an AXI SRAM.
+### Running Performance Simulation
+Run the architecture exploration example using the generic library:
+```bash
+sbt "runMain assap.examples.PerfBaseExample"
+```
+
+### Running RTL Simulation
+Run the hardware system simulation (Hardware Master + SRAM):
 ```bash
 sbt "runMain assap.examples.AssapSystemSim"
 ```
 
-### RTL Performance Model
-Runs the synthesizable `TrafficGenerator` against an SRAM.
+### Running Unit Tests
+Execute all unit tests (including Perf library verification):
 ```bash
-sbt "runMain assap.perf.PerfSim"
+sbt test
 ```
 
-### Architectural Simulation (Software Model)
-Runs the cycle-accurate software model for bottleneck analysis.
-```bash
-sbt "runMain assap.perf.ArchSim"
-```
-*Note: Check `simWorkspace/DummyTop/test.vcd` for results.*
-
-### Native Interface Model
-Runs the simplified Native interface model.
-```bash
-sbt "runMain assap.perf.NativePerfSim"
-```
+## Design Philosophy
+*   **Separation of Concerns:** Keep synthesizable RTL (`design`) and software models (`perf`) separate but structurally aligned.
+*   **Generic Modeling:** Performance components should not depend on specific data types.
+*   **Hardware-First Verification:** Prefer hardware-based masters for verification over software-only testbenches where possible.

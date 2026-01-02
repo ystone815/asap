@@ -19,6 +19,6 @@ class BlinkingLed extends Component {
 
 // Generate Verilog
 object BlinkingLedMain extends App {
-  import assap.design.AssapVerilog
+  import assap.design.base.AssapVerilog
   AssapVerilog(new BlinkingLed)
 }

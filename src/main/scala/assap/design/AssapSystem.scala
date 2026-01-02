@@ -32,7 +32,7 @@ class AssapSystem extends Component {
   )
 
   // 3. Connect Master to Slave using our Utility
-  import assap.design.AxiUtils._
+  import assap.design.base.AxiUtils._
   master.io.axi.drive(sram.io.axi)
 
   // 4. Map outputs

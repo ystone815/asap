@@ -1,4 +1,4 @@
-package assap.design
+package assap.design.base
 
 import spinal.core._
 

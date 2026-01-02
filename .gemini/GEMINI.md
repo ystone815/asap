@@ -5,35 +5,37 @@ This file stores the design philosophy, coding conventions, and lessons learned 
 ## Core Design Philosophy
 
 1.  **Hardware-First Verification:**
-    *   Prefer implementing a **Synthesizable Hardware Master** (e.g., `SimpleAxiMaster`) to drive the DUT, rather than complex software-only testbenches.
+    *   Prefer implementing a **Synthesizable Hardware Master** (e.g., `SimpleAxiMaster`) to drive the DUT.
     *   This ensures the testbench itself is closer to the real hardware environment.
 
-2.  **Performance Modeling Layers:**
-    *   **RTL Layer (`TrafficGenerator`):** Must be synthesizable. Use LFSR for randomness. Supports parameters like `WriteRatio`, `Locality`.
-    *   **Architecture Layer (`ArchSim`):** Pure Scala logic using `fork`, `queue`, `waitSampling`. NO RTL generation required. Used for fast iteration.
-    *   **Visibility:** Even for ArchSim, **expose internal states to dummy hardware ports** to allow VCD tracing.
+2.  **Performance Modeling Layers (`assap.perf`):**
+    *   **Generic Components:** Use `[T]` type parameters for infrastructure components (`Fifo`, `Arbiter`, `DelayLine`) to ensure reusability.
+    *   **Separation:** Keep data definitions (`types`) separate from logic (`base`).
+    *   **SimComponent:** All perf components should extend `SimComponent` and implement `step()` and `reset()`.
 
-3.  **AXI4 Handling:**
-    *   Use `AssapConfig` for global configuration.
-    *   **Handshake Safety:** When designing Masters, assert `AW` and `W` valid signals **in parallel** (or allow them to be independent) to avoid deadlocks with slaves that depend on `W` to accept `AW`.
-    *   **Connection:** Use `AxiUtils.drive(slave: Axi4)` to connect Master(Axi4) to Slave(Axi4) with automatic address resizing and arbitration.
+3.  **AXI4 Handling (`assap.design`):**
+    *   **Handshake Safety:** When designing Masters, use independent or parallel assertion of `AW` and `W` valid signals to avoid deadlocks with strict slaves.
+    *   **Connection:** Use `AxiUtils.drive(slave: Axi4)` for direct AXI4-to-AXI4 connections with automatic address resizing.
+
+4.  **Testing Strategy:**
+    *   **Unit Tests:** Use `ScalaTest` in `src/test/scala` for logic verification. Do not pollute production code with tests.
+    *   **Simulation:** Use `examples` folder for integration level simulation (both RTL and Perf).
 
 ## Lessons Learned & Gotchas
 
-*   **Simulation Reset:**
-    *   `forkStimulus(period=10)` asserts reset for ~100 cycles by default.
-    *   Always use `dut.clockDomain.waitSampling(100)` (or more) at the start of `doSim` to wait for the reset to release before checking signals or starting monitors.
-    *   Avoid checking `io.done` or `counters` immediately after start; wait for the reset period.
+*   **AXI Interconnect Deadlocks:**
+    *   A Master that waits for `AW.ready` before asserting `W.valid` can deadlock if the Slave (or Interconnect/Converter) waits for `W.valid` before asserting `AW.ready`.
+    *   **Fix:** Assert both `AW.valid` and `W.valid` independently or in parallel in the Master FSM.
 
-*   **SpinalSim Data Types:**
-    *   When reading 32-bit `UInt` from simulation (e.g., counters), use `.toLong`. `.toInt` will throw an exception for large unsigned values (overflow).
-    *   Simulation-only objects (like Scala classes in `ArchSim`) cannot be viewed in VCD unless mapped to a `Component`'s IO.
+*   **Performance Simulation Timing:**
+    *   In cycle-based models (`step()`), the order of time increment vs. logic processing matters.
+    *   For `DelayLine`, incrementing current time **before** checking the timeline correctly models "N-cycle delay" (where N=1 means available next cycle). Incrementing after results in N-1 delay.
 
-*   **AXI Interconnect:**
-    *   Simple native interfaces (`NativeBus`) can be used for simpler modeling when full AXI complexity is not needed.
-    *   Manual stream connection is sometimes preferred over `>>` for custom bundles to ensure clarity.
+*   **SpinalSim & Reset:**
+    *   `forkStimulus` asserts reset for ~100 cycles. Always `waitSampling(100)` or check `!isResetActive` before checking simulation results to avoid reading initialization states.
 
-## Directory Structure
-*   `src/main/scala/assap/design`: Synthesizable IP & System.
-*   `src/main/scala/assap/perf`: Performance models (RTL & Arch).
-*   `src/main/scala/assap/examples`: Usage examples & Sim runners.
+## Directory Structure Strategy
+*   `src/main/scala/assap/design/base`: Synthesizable common libs.
+*   `src/main/scala/assap/perf/base`: Generic performance modeling libs (individual files per class).
+*   `src/main/scala/assap/perf/types`: Shared data structures.
+*   `src/test/scala`: Unit tests mirroring the main package structure.
