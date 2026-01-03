@@ -4,7 +4,13 @@ import assap.perf.types.Packet
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class PerfSink(val name: String, sourceFifo: PerfFifo[Packet], override val trace: Boolean = false) extends SimComponent {
+/**
+  * A sink to consume packets and track stats.
+  */
+class PerfSink(val name: String, inputCh: PerfFifo[Packet], override val trace: Boolean = false) extends SimComponent {
+  val input = new PerfIn[Packet]
+  input.bind(inputCh)
+  
   var receivedCount = 0
   var totalLatency = 0L
 
@@ -16,22 +22,14 @@ class PerfSink(val name: String, sourceFifo: PerfFifo[Packet], override val trac
   override def run(cd: ClockDomain): Unit = {
     fork {
       while (true) {
-        // Blocking read (will wait if FIFO is empty)
-        val pkt = sourceFifo.read(cd)
-        
+        val pkt = input.read()
         pkt.endTime = currentCycle
-        val latency = pkt.latency
-        
         receivedCount += 1
-        totalLatency += latency
-        
+        totalLatency += pkt.latency
         if (trace) {
           updateTraceVar("received", receivedCount)
-          updateTraceVar("last_latency", latency)
+          updateTraceVar("last_latency", pkt.latency)
         }
-        
-        // Processing time? If sink is instant, we don't wait.
-        // If sink takes time, add cd.waitSampling(delay) here.
       }
     }
   }

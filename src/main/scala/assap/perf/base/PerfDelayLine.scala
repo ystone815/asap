@@ -1,34 +1,28 @@
 package assap.perf.base
 
-import scala.collection.mutable
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
 /**
   * Delays packets for a fixed number of cycles.
+  * Connects to input and output channels provided in the constructor.
   */
-class PerfDelayLine[T](val name: String, input: PerfFifo[T], output: PerfFifo[T], val latency: Int) extends SimComponent {
-  // A queue of (releaseTime, Data)
-  private val timeline = mutable.Queue[(Long, T)]()
+class PerfDelayLine[T](val name: String, inputCh: PerfFifo[T], outputCh: PerfFifo[T], val latency: Int) extends SimComponent {
+  val input = new PerfIn[T]
+  val output = new PerfOut[T]
+  
+  // Auto-bind ports
+  input.bind(inputCh)
+  output.bind(outputCh)
   
   override def run(cd: ClockDomain): Unit = {
-    // Thread 1: Ingress (Read -> Timeline)
     fork {
       while(true) {
-        val pkt = input.read(cd) // Blocks until input available
-        timeline.enqueue((currentCycle + latency, pkt))
-      }
-    }
-
-    // Thread 2: Egress (Timeline -> Write)
-    fork {
-      while(true) {
-        if (timeline.nonEmpty && timeline.head._1 <= currentCycle) {
-          val (_, pkt) = timeline.dequeue()
-          output.write(pkt, cd) // Blocks until output space available
-        } else {
-          cd.waitSampling() // Wait for time to pass or data to arrive
+        val pkt = input.read()
+        if (latency > 0) {
+          cd.waitSampling(latency)
         }
+        output.write(pkt)
       }
     }
   }
