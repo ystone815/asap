@@ -1,39 +1,59 @@
 package assap.perf.base
 
 import scala.collection.mutable
+import spinal.core.sim._
+import spinal.core.ClockDomain
 
 /**
   * A standard FIFO buffer for performance modeling.
-  * Handles push/pop and backpressure (full/empty).
+  * Supports blocking read/write for SimPy-style interaction.
   * @tparam T The type of data payload
   */
-class PerfFifo[T](val name: String, val capacity: Int) extends SimComponent {
+class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boolean = false) extends SimComponent {
   private val queue = mutable.Queue[T]()
   private var droppedCount = 0
 
-  def push(p: T): Boolean = {
-    if (queue.size < capacity) {
-      queue.enqueue(p)
-      true
-    } else {
-      droppedCount += 1
-      false // Drop or stall indication
-    }
+  if (trace) {
+    addTraceVar("size")
+    addTraceVar("dropped")
   }
 
-  def pop(): Option[T] = {
-    if (queue.nonEmpty) Some(queue.dequeue()) else None
-  }
-
-  def peek(): Option[T] = queue.headOption
+  // Non-blocking ops
   def isFull: Boolean = queue.size >= capacity
   def isEmpty: Boolean = queue.isEmpty
   def nonEmpty: Boolean = queue.nonEmpty
   def size: Int = queue.size
 
-  override def step(): Unit = {} // Passive component
-  override def reset(): Unit = {
-    queue.clear()
-    droppedCount = 0
+  // --- Blocking API (SimPy style) ---
+  
+  /**
+    * Writes data to FIFO. Blocks if full.
+    */
+  def write(data: T, cd: ClockDomain): Unit = {
+    while (isFull) {
+      cd.waitSampling()
+    }
+    queue.enqueue(data)
+    if (trace) updateTraceVar("size", queue.size)
+  }
+
+  /**
+    * Reads data from FIFO. Blocks if empty.
+    */
+  def read(cd: ClockDomain): T = {
+    while (isEmpty) {
+      cd.waitSampling()
+    }
+    val data = queue.dequeue()
+    if (trace) updateTraceVar("size", queue.size)
+    data
+  }
+
+  // FIFO usually doesn't have its own active thread, it's a resource.
+  override def run(cd: ClockDomain): Unit = {
+    if (trace) {
+      updateTraceVar("size", 0)
+      updateTraceVar("dropped", 0)
+    }
   }
 }
