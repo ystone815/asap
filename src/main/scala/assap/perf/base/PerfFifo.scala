@@ -2,15 +2,14 @@ package assap.perf.base
 
 import scala.collection.mutable
 import spinal.core.sim._
-import spinal.core.ClockDomain
 
 /**
-  * A standard FIFO buffer acting as a Channel between ports.
+  * A standard FIFO buffer for performance modeling.
+  * Uses absolute simulation time delay (sleep) for blocking.
   */
-class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boolean = false) extends SimComponent with PerfChannel[T] {
+class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boolean = false) extends SimComponent {
   private val queue = mutable.Queue[T]()
   private var droppedCount = 0
-  private var cd: ClockDomain = null
 
   if (trace) {
     addTraceVar("size")
@@ -22,27 +21,30 @@ class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boole
   def nonEmpty: Boolean = queue.nonEmpty
   def size: Int = queue.size
 
-  override def write(data: T): Unit = {
-    // If cd is not set yet (e.g. static init), we can't block properly.
-    // Assuming run() is called before any traffic.
+  /**
+    * Blocking Write: waits if FIFO is full.
+    */
+  def write(data: T): Unit = {
     while (isFull) {
-      if (cd != null) cd.waitSampling() else Thread.sleep(1) // Fallback safety
+      sleep(1000) // Wait 1 time unit (Cycle)
     }
     queue.enqueue(data)
     if (trace) updateTraceVar("size", queue.size)
   }
 
-  override def read(): T = {
+  /**
+    * Blocking Read: waits if FIFO is empty.
+    */
+  def read(): T = {
     while (isEmpty) {
-      if (cd != null) cd.waitSampling() else Thread.sleep(1)
+      sleep(1000) // Wait 1 time unit (Cycle)
     }
     val data = queue.dequeue()
     if (trace) updateTraceVar("size", queue.size)
     data
   }
 
-  override def run(clockDomain: ClockDomain): Unit = {
-    this.cd = clockDomain
+  override def run(): Unit = {
     if (trace) {
       updateTraceVar("size", 0)
       updateTraceVar("dropped", 0)

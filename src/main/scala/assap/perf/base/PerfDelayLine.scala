@@ -1,26 +1,19 @@
 package assap.perf.base
 
 import spinal.core.sim._
-import spinal.core.ClockDomain
 
 /**
-  * Delays packets for a fixed number of cycles.
-  * Connects to input and output channels provided in the constructor.
+  * Delays packets for a fixed number of time units.
+  * Connects directly to input and output FIFOs.
   */
-class PerfDelayLine[T](val name: String, inputCh: PerfFifo[T], outputCh: PerfFifo[T], val latency: Int) extends SimComponent {
-  val input = new PerfIn[T]
-  val output = new PerfOut[T]
+class PerfDelayLine[T](val name: String, input: PerfFifo[T], output: PerfFifo[T], val latency: Int) extends SimComponent {
   
-  // Auto-bind ports
-  input.bind(inputCh)
-  output.bind(outputCh)
-  
-  override def run(cd: ClockDomain): Unit = {
+  override def run(): Unit = {
     fork {
       while(true) {
         val pkt = input.read()
         if (latency > 0) {
-          cd.waitSampling(latency)
+          sleep(latency)
         }
         output.write(pkt)
       }

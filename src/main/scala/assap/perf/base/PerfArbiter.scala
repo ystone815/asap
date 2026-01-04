@@ -1,25 +1,11 @@
 package assap.perf.base
 
 import spinal.core.sim._
-import spinal.core.ClockDomain
 
-/**
-  * Round-Robin Arbiter.
-  * Connects multiple input channels to one output channel.
-  */
-class PerfArbiter[T](val name: String, inputChs: Seq[PerfFifo[T]], outputCh: PerfFifo[T]) extends SimComponent {
-  val inputs = inputChs.map { ch =>
-    val p = new PerfIn[T]
-    p.bind(ch)
-    p
-  }
-  
-  val output = new PerfOut[T]
-  output.bind(outputCh)
-  
+class PerfArbiter[T](val name: String, inputs: Seq[PerfFifo[T]], output: PerfFifo[T]) extends SimComponent {
   private var rrIndex = 0
 
-  override def run(cd: ClockDomain): Unit = {
+  override def run(): Unit = {
     fork {
       while (true) {
         var transferred = false
@@ -38,7 +24,8 @@ class PerfArbiter[T](val name: String, inputChs: Seq[PerfFifo[T]], outputCh: Per
           i += 1
         }
         
-        cd.waitSampling()
+        // Arbitration Latency
+        sleep(1000)
       }
     }
   }

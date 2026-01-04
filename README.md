@@ -34,6 +34,14 @@ src/
 
 ## Getting Started
 
+### Simulation Time and Units
+ASSAP Performance models use **Absolute Time Delay** for maximum flexibility and SimPy-like coding style.
+*   **Base Time Unit:** 1 Time Unit = **1ps (picosecond)**.
+*   **Modeling Scale:** 
+    *   `sleep(1000)` represents **1ns** (1GHz cycle).
+    *   `sleep(500)` represents **0.5ns** (2GHz rate).
+*   This high resolution allows modeling fractional utilization and precise bandwidth without floating-point overhead.
+
 ### Prerequisites
 *   Java JDK 8 or 17+
 *   sbt (Scala Build Tool)
