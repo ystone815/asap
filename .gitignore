@@ -2,10 +2,15 @@
 *.log
 *.vcd
 *.v
+*.gch
+*.o
+*.a
+*.so
 
 # sbt specific
 generated/
 .bsp/
+.bloop/
 .sbt/
 .scala_dependencies
 .history/
@@ -14,6 +19,11 @@ target/
 project/target/
 project/project/target/
 
-# IDEA
+# IDEA / VSCode / Metals
 .idea/
 *.iml
+.vscode/
+.metals/
+
+# SpinalHDL Simulation Workspace
+simWorkspace/
