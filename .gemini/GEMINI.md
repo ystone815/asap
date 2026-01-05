@@ -11,6 +11,7 @@ This file stores the design philosophy, coding conventions, and lessons learned 
 2.  **Performance Modeling (`assap.perf`):**
     *   **Simplicity First:** Use `PerfFifo[T]` directly as the port and channel. Avoid wrapper classes.
     *   **Blocking I/O (Standard API):** Use **`read()`** and **`write(data)`** as the primary blocking methods. These align with SimPy/SystemC paradigms and handle backpressure implicitly.
+    *   **Event-Driven Efficiency:** Use **`waitUntil(condition)`** inside `PerfFifo` to avoid busy-waiting or polling loops, significantly increasing simulation throughput.
     *   **Explicit Connectivity:** Pass `PerfFifo` references through component constructors to define the topology during instantiation.
     *   **Mixed-Mode Ready:** The simulation environment runs on SpinalSim's `ClockDomain`, supporting interaction between SW Models and RTL via adapters.
 
@@ -44,5 +45,6 @@ This file stores the design philosophy, coding conventions, and lessons learned 
 ## Lessons Learned & Gotchas
 
 *   **Terminology:** Standardizing on `read/write` (instead of `push/pop`) improved clarity when discussing hardware-like blocking behavior.
-*   **Latency Modeling:** Accurate N-cycle delay requires careful ordering of `waitSampling` and data movement.
+*   **Event-Driven vs Polling:** Switching from `while-sleep` polling to `waitUntil` in `PerfFifo` tripled the simulation speed (~20k -> ~70k pps).
+*   **JNI Overhead:** Mixed-mode simulation (SW driving HW) is limited by JNI communication overhead. For maximum speed (>1M pps), keep the entire hot-path in synthesizable RTL.
 *   **VCD for SW Models:** Registered variables in `PerfVcdManager` are the only way to see SW states in wave viewers.

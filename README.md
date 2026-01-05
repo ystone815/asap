@@ -6,12 +6,13 @@ ASSAP is a dual-purpose platform designed for both **Synthesizable RTL Design** 
 
 ### 1. Synthesizable RTL Design (`assap.design`)
 *   **SpinalHDL based:** High-productivity hardware description.
-*   **AXI4 Support:** robust AXI4 Master/Slave implementations and utilities.
-*   **AssapSystem:** A reference SoC structure connecting Hardware Masters to SRAM Slaves.
+*   **AXI4 Support:** Robust AXI4 Master/Slave implementations and utilities.
 *   **Base Library:** Common synthesizable utilities in `assap.design.base`.
+*   **Generic RTL Models:** Reusable hardware components like `RtlDelayLine[T]`.
 
 ### 2. Performance Modeling (`assap.perf`)
-*   **Cycle-Accurate Modeling:** Fast simulation for architectural exploration.
+*   **Event-Driven Modeling:** Efficient simulation using `waitUntil` and `sleep`.
+*   **SimPy-Style Blocking:** Direct `read()` and `write()` methods on FIFOs.
 *   **Generic Components:** Type-agnostic base library (`Fifo[T]`, `Arbiter[T]`, `Router[T]`, `DelayLine[T]`).
 *   **Packet-based Simulation:** Flexible `Packet` structure for NoC/Interconnect modeling.
 *   **TDD Approach:** Fully tested components using ScalaTest.
@@ -22,12 +23,12 @@ ASSAP is a dual-purpose platform designed for both **Synthesizable RTL Design** 
 src/
 ├── main/scala/assap/
 │   ├── design/             # Synthesizable RTL
-│   │   ├── base/           # Common RTL utilities (AxiUtils, Config)
+│   │   ├── base/           # Common RTL utilities (AxiUtils, Config, PacketBundle)
 │   │   └── ...             # IP and System definitions
 │   ├── perf/               # Performance Modeling
-│   │   ├── base/           # Generic Sim Components (Fifo, Router, etc.)
+│   │   ├── base/           # Generic Sim Components (Fifo, Arbiter, etc.)
 │   │   └── types/          # Data structures (Packet)
-│   └── examples/           # Runnable examples for both RTL and Perf
+│   └── examples/           # Runnable examples and stress tests
 └── test/scala/assap/       # Unit Tests
     └── perf/base/          # Tests for Performance Library
 ```
@@ -35,37 +36,25 @@ src/
 ## Getting Started
 
 ### Simulation Time and Units
-ASSAP Performance models use **Absolute Time Delay** for maximum flexibility and SimPy-like coding style.
+ASSAP Performance models use **Absolute Time Delay** for maximum flexibility.
 *   **Base Time Unit:** 1 Time Unit = **1ps (picosecond)**.
-*   **Modeling Scale:** 
-    *   `sleep(1000)` represents **1ns** (1GHz cycle).
-    *   `sleep(500)` represents **0.5ns** (2GHz rate).
-*   This high resolution allows modeling fractional utilization and precise bandwidth without floating-point overhead.
+*   **Standard Scale:** 1ns = 1000ps.
+*   **High Resolution:** Allows modeling fractional utilization (e.g., `sleep(500)` for 0.5ns) using integer logic.
 
 ### Prerequisites
 *   Java JDK 8 or 17+
 *   sbt (Scala Build Tool)
-*   Verilator (for RTL simulation)
+*   Verilator (for RTL and Mixed-mode simulation)
 
-### Running Performance Simulation
-Run the architecture exploration example using the generic library:
+### Running Stress Tests
+Compare performance between different modeling styles:
 ```bash
-sbt "runMain assap.examples.PerfBaseExample"
-```
-
-### Running RTL Simulation
-Run the hardware system simulation (Hardware Master + SRAM):
-```bash
-sbt "runMain assap.examples.AssapSystemSim"
-```
-
-### Running Unit Tests
-Execute all unit tests (including Perf library verification):
-```bash
-sbt test
+sbt "runMain assap.examples.PerfStressTest"     # Pure SW (~70k pps)
+sbt "runMain assap.examples.RtlStressTest"      # Mixed SW/HW (~40k pps with JNI overhead)
+sbt "runMain assap.examples.RtlPureStressTest"  # Pure RTL (~1M pps)
 ```
 
 ## Design Philosophy
-*   **Separation of Concerns:** Keep synthesizable RTL (`design`) and software models (`perf`) separate but structurally aligned.
-*   **Generic Modeling:** Performance components should not depend on specific data types.
-*   **Hardware-First Verification:** Prefer hardware-based masters for verification over software-only testbenches where possible.
+*   **Simplicity First:** Use `PerfFifo[T]` directly as ports and channels. Avoid over-engineering.
+*   **Explicit Connectivity:** Pass channel references through constructors to define topology clearly.
+*   **Hybrid Modeling:** Rapidly prototype in SW (`perf`), then migrate bottlenecks to HW (`design`).
