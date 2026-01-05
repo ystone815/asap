@@ -6,7 +6,7 @@ import assap.perf.base._
 import assap.perf.types.{Packet, PacketType}
 
 object PerfStressTest extends App {
-  val packetCount = 10000 // 10K packets
+  val packetCount = 100000 
   
   println(s"=== Assap Performance Stress Test ($packetCount packets) ===")
   
@@ -32,24 +32,17 @@ object PerfStressTest extends App {
     println("Initialization complete. Starting measurement...")
     val startTime = System.nanoTime()
     
-    // 2. Main Loop
-    var cycles = 0
-    val maxCycles = packetCount * 20000 // Failsafe
-    
-    while(sink.receivedCount < packetCount && cycles < maxCycles) {
-      // We are using sleep(1000) inside components, so we should wait in time units
-      // However, dut.clockDomain.waitSampling uses Cycles. 
-      // If we don't have a clock, we must use sleep()
-      sleep(10000) // Advance 10ns
-      cycles += 10000
-    }
+    // 2. Main Wait (Event-Driven)
+    // Wait until sink receives all packets. No polling sleep needed.
+    // Sim kernel checks this condition whenever threads yield.
+    waitUntil(sink.receivedCount >= packetCount)
     
     val endTime = System.nanoTime()
     val durationMs = (endTime - startTime) / 1e6
     
     println(s"\n--- Stress Test Results ---")
     println(s"Total Packets: ${sink.receivedCount}")
-    println(s"Sim Time:      $cycles ps")
+    println(s"Sim Time:      ${simTime()} ps")
     println(s"Wall Time:     $durationMs ms")
     if (durationMs > 0) {
       val tput = (sink.receivedCount * 1000.0) / durationMs

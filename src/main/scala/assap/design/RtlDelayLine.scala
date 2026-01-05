@@ -2,14 +2,19 @@ package assap.design
 
 import spinal.core._
 import spinal.lib._
-import assap.design.base.PacketBundle
 
-class RtlDelayLine(latency: Int) extends Component {
+/**
+  * A generic RTL delay line (FIFO-based) for any Data type.
+  * @tparam T The payload data type
+  * @param payloadType The hardware type generator (e.g. HardType(UInt(32 bits)))
+  * @param latency The number of cycles to delay (depth of FIFO)
+  */
+class RtlDelayLine[T <: Data](payloadType: HardType[T], latency: Int) extends Component {
   val io = new Bundle {
-    val input = slave Stream(PacketBundle())
-    val output = master Stream(PacketBundle())
+    val input = slave Stream(payloadType())
+    val output = master Stream(payloadType())
   }
 
-  // Pure RTL delay (Pipeline registers) -> Use FIFO for buffering
+  // Use FIFO for simple pipeline delay with backpressure support
   io.output << io.input.queue(latency)
 }

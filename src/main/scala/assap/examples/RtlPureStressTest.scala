@@ -69,7 +69,7 @@ object RtlPureStressTest extends App {
     // ALL Logic resides within this explicit ClockingArea
     val systemArea = new ClockingArea(systemClk) {
       val gen = new RtlGenerator()
-      val delay = new RtlDelayLine(latency = 5)
+      val delay = new RtlDelayLine(PacketBundle(), latency = 5)
       val sink = new RtlSink()
       
       gen.io.output >> delay.io.input

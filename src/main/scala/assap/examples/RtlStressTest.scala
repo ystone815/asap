@@ -14,7 +14,7 @@ object RtlStressTest extends App {
   println(s"=== ASSAP RTL Stress Test ($packetCount packets) ===")
 
   class Top extends Component {
-    val dut = new RtlDelayLine(latency = 16) // Sufficient depth
+    val dut = new RtlDelayLine(PacketBundle(), latency = 16) // Generic instantiation
     val input = slave(Stream(PacketBundle()))
     val output = master(Stream(PacketBundle()))
     
