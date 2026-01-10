@@ -4,19 +4,19 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.amba4.axi._
 
-object AxiUtils {
+object axi_utils {
 
   /** Connects an Axi4 Master to an Axi4Shared Slave, handling address resizing
     * automatically. This is useful when connecting a full 32-bit/64-bit Bus to
     * a smaller On-Chip RAM.
     */
-  implicit class Axi4Rich(master: Axi4) {
+  implicit class axi4_rich(master: Axi4) {
     def drive(slave: Axi4Shared): Unit = {
       val masterShared = Axi4ToAxi4Shared(master)
 
       // ARW Channel (Read/Write Address)
       slave.arw.arbitrationFrom(masterShared.arw)
-      
+
       // Manual assignment for ARW payload to skip 'addr' for resizing
       for ((name, slaveSignal) <- slave.arw.payload.elements) {
         if (name != "addr") {
@@ -26,7 +26,7 @@ object AxiUtils {
           }
         }
       }
-      
+
       // Explicitly resize address
       slave.arw.payload.addr := masterShared.arw.payload.addr
         .resize(slave.config.addressWidth bits)
@@ -45,11 +45,14 @@ object AxiUtils {
       // Connect AW Channel
       slave.aw.arbitrationFrom(master.aw)
       for ((name, slaveSignal) <- slave.aw.payload.elements) {
-         if (name != "addr") {
-           master.aw.payload.elements.find(_._1 == name).foreach { case (_, src) => slaveSignal := src }
-         }
+        if (name != "addr") {
+          master.aw.payload.elements.find(_._1 == name).foreach {
+            case (_, src) => slaveSignal := src
+          }
+        }
       }
-      slave.aw.payload.addr := master.aw.payload.addr.resize(slave.config.addressWidth bits)
+      slave.aw.payload.addr := master.aw.payload.addr
+        .resize(slave.config.addressWidth bits)
 
       // Connect W Channel
       slave.w << master.w
@@ -60,11 +63,14 @@ object AxiUtils {
       // Connect AR Channel
       slave.ar.arbitrationFrom(master.ar)
       for ((name, slaveSignal) <- slave.ar.payload.elements) {
-         if (name != "addr") {
-           master.ar.payload.elements.find(_._1 == name).foreach { case (_, src) => slaveSignal := src }
-         }
+        if (name != "addr") {
+          master.ar.payload.elements.find(_._1 == name).foreach {
+            case (_, src) => slaveSignal := src
+          }
+        }
       }
-      slave.ar.payload.addr := master.ar.payload.addr.resize(slave.config.addressWidth bits)
+      slave.ar.payload.addr := master.ar.payload.addr
+        .resize(slave.config.addressWidth bits)
 
       // Connect R Channel
       master.r << slave.r

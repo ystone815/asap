@@ -5,7 +5,7 @@ import spinal.lib._
 import spinal.lib.bus.amba4.axi._
 import spinal.lib.fsm._
 
-case class SimpleAxiMaster(config: Axi4Config) extends Component {
+case class simple_axi_master(config: Axi4Config) extends Component {
   val io = new Bundle {
     val axi = master(Axi4(config))
     val done = out Bool ()

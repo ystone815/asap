@@ -1,26 +1,25 @@
 package assap.perf.base
 
 import spinal.core.sim._
+import spinal.core.ClockDomain
 
 /** Base trait for all performance simulation components.
   */
-trait SimComponent {
+trait sim_component {
   def name: String
 
   // Tracing support
   def trace: Boolean = false
 
-  import spinal.core.ClockDomain
-
   // Start the component's thread(s)
   def run(cd: ClockDomain): Unit
 
   protected def addTraceVar(varName: String): Unit = {
-    if (trace) PerfVcdManager.register(name, varName, 32)
+    if (trace) perf_vcd_manager.register(name, varName, 32)
   }
 
   protected def updateTraceVar(varName: String, value: Long): Unit = {
-    if (trace) PerfVcdManager.update(name, varName, value)
+    if (trace) perf_vcd_manager.update(name, varName, value)
   }
 
   // Use absolute simulation time directly

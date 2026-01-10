@@ -4,40 +4,40 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 import assap.perf.base._
-import assap.perf.types.{Packet, PacketType}
-import assap.design.RtlDelayLine
-import assap.design.base.PacketBundle
+import assap.perf.types.{packet, packet_type}
+import assap.design.rtl_delay_line
+import assap.design.base.packet_bundle
 
-object RtlStressTest extends App {
-  val packetCount = 10000
+object rtl_stress_test extends App {
+  val packetCount = 100000
 
   println(s"=== ASSAP RTL Stress Test ($packetCount packets) ===")
 
   class Top extends Component {
-    val dut = new RtlDelayLine(PacketBundle(), latency = 16)
-    val input = slave(Stream(PacketBundle()))
-    val output = master(Stream(PacketBundle()))
+    val dut = new rtl_delay_line(packet_bundle(), latency = 16)
+    val input = slave(Stream(packet_bundle()))
+    val output = master(Stream(packet_bundle()))
 
     dut.io.input << input
     dut.io.output >> output
   }
 
-  SimConfig.withWave.compile(new Top).doSim { dut =>
+  SimConfig.compile(new Top).doSim { dut =>
     dut.clockDomain.forkStimulus(period = 1000)
-    PerfVcdManager.init("rtl_trace.vcd")
-    PerfVcdManager.start()
+    perf_vcd_manager.init("rtl_trace.vcd")
+    perf_vcd_manager.start()
 
-    val qGen = new PerfFifo[Packet]("QGen", 100, trace = false)
-    val qSink = new PerfFifo[Packet]("QSink", 100, trace = false)
+    val qGen = new perf_fifo[packet]("QGen", 100, trace = false)
+    val qSink = new perf_fifo[packet]("QSink", 100, trace = false)
 
-    val gen = new PerfPacketGenerator(
+    val gen = new perf_packet_generator(
       "Gen",
       output = qGen,
       srcId = 0,
       rate = 1.0,
       trace = false
     )
-    val sink = new PerfSink("Sink", input = qSink, trace = false)
+    val sink = new perf_sink("Sink", input = qSink, trace = false)
 
     gen.run(dut.clockDomain)
     sink.run(dut.clockDomain)
@@ -66,11 +66,11 @@ object RtlStressTest extends App {
           dut.output.valid.toBoolean && dut.output.ready.toBoolean
         )
 
-        val pkt = Packet(
+        val pkt = packet(
           id = dut.output.payload.id.toLong,
           src_id = 0,
           dest_id = 0,
-          p_type = PacketType.WRITE,
+          p_type = packet_type.WRITE,
           addr = dut.output.payload.addr.toLong,
           size = dut.output.payload.size.toInt,
           start_time = 0
@@ -82,6 +82,7 @@ object RtlStressTest extends App {
     val startTime = System.nanoTime()
 
     var cycles = 0
+    // Arbitrary timeout or cycle limit
     val maxCycles = packetCount * 20
 
     while (sink.receivedCount < packetCount && cycles < maxCycles) {
@@ -92,7 +93,7 @@ object RtlStressTest extends App {
     val endTime = System.nanoTime()
     val durationMs = (endTime - startTime) / 1e6
 
-    PerfVcdManager.close()
+    perf_vcd_manager.close()
 
     println(s"\n--- RTL Stress Test Results ---")
     println(s"Total Packets: ${sink.receivedCount}")

@@ -4,16 +4,14 @@ import scala.collection.mutable
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-import spinal.core.ClockDomain
-
 /** A standard FIFO buffer for performance modeling. Uses event-driven blocking
   * (waitUntil) for efficient synchronization.
   */
-class PerfFifo[T](
+class perf_fifo[T](
     val name: String,
     val capacity: Int,
     override val trace: Boolean = false
-) extends SimComponent {
+) extends sim_component {
   private val queue = mutable.Queue[T]()
   private var droppedCount = 0
 

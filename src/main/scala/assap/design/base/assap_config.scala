@@ -2,7 +2,7 @@ package assap.design.base
 
 import spinal.core._
 
-object AssapConfig {
+object assap_config {
   def spinal = SpinalConfig(
     targetDirectory = "generated/src/verilog",
     defaultConfigForClockDomains = ClockDomainConfig(
@@ -11,8 +11,8 @@ object AssapConfig {
   )
 }
 
-object AssapVerilog {
+object assap_verilog {
   def apply[T <: Component](component: => T): SpinalReport[T] = {
-    AssapConfig.spinal.generateVerilog(component)
+    assap_config.spinal.generateVerilog(component)
   }
 }

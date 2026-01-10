@@ -2,17 +2,19 @@ package assap.design
 
 import spinal.core._
 import spinal.lib.bus.amba4.axi._
-import assap.examples.SimpleAxiSram
+import assap.examples.simple_axi_sram
 
-class AssapSystem extends Component {
+// Note: simple_axi_sram is in examples package.
+
+class assap_system extends Component {
   val io = new Bundle {
-    val done  = out Bool()
-    val error = out Bool()
-    val stateDebug = out UInt(3 bits)
-    val sram_arw_valid = out Bool()
-    val sram_arw_ready = out Bool()
-    val master_aw_valid = out Bool()
-    val master_aw_ready = out Bool()
+    val done = out Bool ()
+    val error = out Bool ()
+    val stateDebug = out UInt (3 bits)
+    val sram_arw_valid = out Bool ()
+    val sram_arw_ready = out Bool ()
+    val master_aw_valid = out Bool ()
+    val master_aw_ready = out Bool ()
   }
 
   // 1. Configs
@@ -23,8 +25,8 @@ class AssapSystem extends Component {
   )
 
   // 2. Instantiate Components
-  val master = SimpleAxiMaster(axiConfig)
-  val sram   = new SimpleAxiSram(
+  val master = simple_axi_master(axiConfig)
+  val sram = new simple_axi_sram(
     addressWidth = 32,
     dataWidth = 32,
     idWidth = 4,
@@ -32,14 +34,14 @@ class AssapSystem extends Component {
   )
 
   // 3. Connect Master to Slave using our Utility
-  import assap.design.base.AxiUtils._
+  import assap.design.base.axi_utils._
   master.io.axi.drive(sram.io.axi)
 
   // 4. Map outputs
-  io.done  := master.io.done
+  io.done := master.io.done
   io.error := master.io.error
   io.stateDebug := master.io.stateDebug
-  
+
   // Debug connections
   io.sram_arw_valid := sram.io.arw_valid_debug
   io.sram_arw_ready := sram.io.arw_ready_debug
@@ -47,7 +49,7 @@ class AssapSystem extends Component {
   io.master_aw_ready := master.io.axi.aw.ready
 }
 
-object AssapSystemMain extends App {
+object assap_system_main extends App {
   SpinalConfig(targetDirectory = "generated/src/verilog")
-    .generateVerilog(new AssapSystem)
+    .generateVerilog(new assap_system)
 }

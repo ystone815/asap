@@ -3,12 +3,12 @@ package assap.perf.base
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class PerfRouter[T](
+class perf_router[T](
     val name: String,
-    input: PerfFifo[T],
-    outputs: Map[Int, PerfFifo[T]],
+    input: perf_fifo[T],
+    outputs: Map[Int, perf_fifo[T]],
     getDest: T => Int
-) extends SimComponent {
+) extends sim_component {
 
   override def run(cd: ClockDomain): Unit = {
     fork {

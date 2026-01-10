@@ -1,14 +1,14 @@
 package assap.perf.base
 
-import assap.perf.types.Packet
+import assap.perf.types.packet
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class PerfSink(
+class perf_sink(
     val name: String,
-    input: PerfFifo[Packet],
+    input: perf_fifo[packet],
     override val trace: Boolean = false
-) extends SimComponent {
+) extends sim_component {
   var receivedCount = 0
   var totalLatency = 0L
 

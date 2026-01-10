@@ -6,12 +6,12 @@ import spinal.core.ClockDomain
 /** Delays packets for a fixed number of time units. Connects directly to input
   * and output FIFOs.
   */
-class PerfDelayLine[T](
+class perf_delay_line[T](
     val name: String,
-    input: PerfFifo[T],
-    output: PerfFifo[T],
+    input: perf_fifo[T],
+    output: perf_fifo[T],
     val latency: Int
-) extends SimComponent {
+) extends sim_component {
 
   override def run(cd: ClockDomain): Unit = {
     fork {

@@ -3,11 +3,11 @@ package assap.perf.base
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class PerfArbiter[T](
+class perf_arbiter[T](
     val name: String,
-    inputs: Seq[PerfFifo[T]],
-    output: PerfFifo[T]
-) extends SimComponent {
+    inputs: Seq[perf_fifo[T]],
+    output: perf_fifo[T]
+) extends sim_component {
   private var rrIndex = 0
 
   override def run(cd: ClockDomain): Unit = {

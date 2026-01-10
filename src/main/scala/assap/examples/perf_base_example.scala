@@ -1,18 +1,17 @@
 package assap.examples
 
+import assap.perf.base._
+import assap.perf.types.{packet, packet_type}
 import spinal.core._
 import spinal.core.sim._
-import assap.perf.base._
-import assap.perf.types.{Packet, PacketType}
 
-object PerfStressTest extends App {
-  val packetCount = 100000
-  val latencyVal = 5000 // 5ns
+object perf_base_example extends App {
+  val packetCount = 100
+  val latencyVal = 500 // 500 ps
 
-  println(
-    s"=== Assap Performance Stress Test ($packetCount packets, Latency ${latencyVal}ps) ==="
-  )
+  println(s"=== ASSAP Perf Base Example ($packetCount packets) ===")
 
+  // Dummy Top for SpinalSim
   class Top extends Component {
     val io = new Bundle { val done = out Bool () }
     io.done := False
@@ -22,14 +21,11 @@ object PerfStressTest extends App {
 
   compiled.doSim { (dut: Top) =>
     // 1. Setup
-    val q1 = new PerfFifo[Packet]("Q1", 100, trace = false)
-    val q2 = new PerfFifo[Packet]("Q2", 100, trace = false)
+    val q1 = new perf_fifo[packet]("Q1", 100, trace = false)
+    val q2 = new perf_fifo[packet]("Q2", 100, trace = false)
 
-    // Gen Rate 1.0 -> 1 packet per 1 time unit? NO.
-    // In SW model, rate 1.0 means "generate every cycle".
-    // But our cycle is implicit sleep(1000).
-    // So 1 packet per 1ns. -> 1G pps.
-    val gen = new PerfPacketGenerator(
+    // Gen Rate 1.0 -> 1ns -> 1G pps.
+    val gen = new perf_packet_generator(
       "Gen",
       output = q1,
       srcId = 0,
@@ -37,13 +33,13 @@ object PerfStressTest extends App {
       trace = false
     )
 
-    val delay = new PerfDelayLine[Packet](
+    val delay = new perf_delay_line[packet](
       "Delay",
       input = q1,
       output = q2,
       latency = latencyVal
     )
-    val sink = new PerfSink("Sink", input = q2, trace = false)
+    val sink = new perf_sink("Sink", input = q2, trace = false)
 
     val components = Seq(gen, delay, sink)
     components.foreach(_.run(dut.clockDomain))
@@ -72,8 +68,6 @@ object PerfStressTest extends App {
     }
 
     if (simDurationPs > 0) {
-      // Bandwidth in packets/sec (1 sec = 1e12 ps)
-      // packets / (ps * 1e-12) = packets * 1e12 / ps
       val bandwidth = (sink.receivedCount * 1e12) / simDurationPs
       println(f"Model BW:      $bandwidth%.2f packets/sec (Logical throughput)")
       println(f"               ${bandwidth / 1e9}%.2f Gpps")

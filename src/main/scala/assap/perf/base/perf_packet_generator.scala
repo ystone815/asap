@@ -1,17 +1,17 @@
 package assap.perf.base
 
 import scala.util.Random
-import assap.perf.types.{Packet, PacketType}
+import assap.perf.types.{packet, packet_type}
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class PerfPacketGenerator(
+class perf_packet_generator(
     val name: String,
-    output: PerfFifo[Packet],
+    output: perf_fifo[packet],
     srcId: Int,
     rate: Double,
     override val trace: Boolean = false
-) extends SimComponent {
+) extends sim_component {
   val rand = new Random(srcId)
   var pCounter = 0
 
@@ -22,11 +22,11 @@ class PerfPacketGenerator(
       while (true) {
         if (rand.nextDouble() < rate) {
           pCounter += 1
-          val pkt = Packet(
+          val pkt = packet(
             id = (srcId.toLong * 1000000) + pCounter,
             src_id = srcId,
             dest_id = if (rand.nextBoolean()) 1 else 0,
-            p_type = PacketType.WRITE,
+            p_type = packet_type.WRITE,
             addr = rand.nextInt(1000).toLong,
             size = 64,
             start_time = simTime()
