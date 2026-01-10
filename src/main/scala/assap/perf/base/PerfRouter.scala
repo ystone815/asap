@@ -1,22 +1,30 @@
 package assap.perf.base
 
 import spinal.core.sim._
+import spinal.core.ClockDomain
 
-class PerfRouter[T](val name: String, input: PerfFifo[T], outputs: Map[Int, PerfFifo[T]], getDest: T => Int) extends SimComponent {
-  
-  override def run(): Unit = {
+class PerfRouter[T](
+    val name: String,
+    input: PerfFifo[T],
+    outputs: Map[Int, PerfFifo[T]],
+    getDest: T => Int
+) extends SimComponent {
+
+  override def run(cd: ClockDomain): Unit = {
     fork {
       while (true) {
         val pkt = input.read()
-        
-        sleep(1000) // Routing Latency
-        
+
+        cd.waitSampling() // Latency
+
         val destId = getDest(pkt)
         outputs.get(destId) match {
-          case Some(outQueue) =>
-            outQueue.write(pkt)
+          case Some(outPort) =>
+            outPort.write(pkt)
           case None =>
-            println(s"[$name] Error: Invalid Dest ID $destId. Dropping packet $pkt")
+            println(
+              s"[$name] Error: Invalid Dest ID $destId. Dropping packet $pkt"
+            )
         }
       }
     }

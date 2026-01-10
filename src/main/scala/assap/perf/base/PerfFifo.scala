@@ -2,12 +2,18 @@ package assap.perf.base
 
 import scala.collection.mutable
 import spinal.core.sim._
+import spinal.core.ClockDomain
 
-/**
-  * A standard FIFO buffer for performance modeling.
-  * Uses event-driven blocking (waitUntil) for efficient synchronization.
+import spinal.core.ClockDomain
+
+/** A standard FIFO buffer for performance modeling. Uses event-driven blocking
+  * (waitUntil) for efficient synchronization.
   */
-class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boolean = false) extends SimComponent {
+class PerfFifo[T](
+    val name: String,
+    val capacity: Int,
+    override val trace: Boolean = false
+) extends SimComponent {
   private val queue = mutable.Queue[T]()
   private var droppedCount = 0
 
@@ -21,8 +27,7 @@ class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boole
   def nonEmpty: Boolean = queue.nonEmpty
   def size: Int = queue.size
 
-  /**
-    * Blocking Write: waits until space is available.
+  /** Blocking Write: waits until space is available.
     */
   def write(data: T): Unit = {
     if (isFull) {
@@ -32,8 +37,7 @@ class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boole
     if (trace) updateTraceVar("size", queue.size)
   }
 
-  /**
-    * Blocking Read: waits until data is available.
+  /** Blocking Read: waits until data is available.
     */
   def read(): T = {
     if (isEmpty) {
@@ -44,7 +48,7 @@ class PerfFifo[T](val name: String, val capacity: Int, override val trace: Boole
     data
   }
 
-  override def run(): Unit = {
+  override def run(cd: ClockDomain): Unit = {
     if (trace) {
       updateTraceVar("size", 0)
       updateTraceVar("dropped", 0)

@@ -8,16 +8,17 @@ import assap.design.RtlDelayLine
 
 object RtlPureStressTest extends App {
   val targetPackets = 100000 
+  val latencyCycles = 5 // 5 cycles * 1ns period = 5ns
   
-  println(s"=== ASSAP Pure RTL Stress Test ($targetPackets packets target) ===")
+  println(s"=== ASSAP Pure RTL Stress Test ($targetPackets packets, Latency ${latencyCycles} cycles) ===")
 
-  // 1. Hardware Generator using LFSR
   class RtlGenerator extends Component {
     val io = new Bundle {
       val output = master Stream(PacketBundle())
     }
     val counter = Reg(UInt(32 bits)) init(0)
     
+    // Full speed generator (1 packet per cycle)
     io.output.valid := True
     io.output.payload.addr := counter
     io.output.payload.size := 64
@@ -28,7 +29,6 @@ object RtlPureStressTest extends App {
     }
   }
 
-  // 2. Hardware Sink
   class RtlSink extends Component {
     val io = new Bundle {
       val input = slave Stream(PacketBundle())
@@ -43,33 +43,18 @@ object RtlPureStressTest extends App {
     io.count := counter
   }
 
-  // 3. Top Level Connection with Explicit ClockDomain
   class Top extends Component {
-    // Define an explicit clock domain configuration
-    val systemClkConfig = ClockDomainConfig(
-      resetKind = SYNC,
-      resetActiveLevel = HIGH
-    )
-    
-    // Define ports for the clock domain
+    val systemClkConfig = ClockDomainConfig(resetKind = SYNC, resetActiveLevel = HIGH)
     val clk = in Bool()
     val reset = in Bool()
+    val systemClk = ClockDomain(clk, reset, config = systemClkConfig, frequency = FixedFrequency(1 GHz))
     
-    // Create the ClockDomain object
-    val systemClk = ClockDomain(
-      clock = clk,
-      reset = reset,
-      config = systemClkConfig,
-      frequency = FixedFrequency(1 GHz) // Explicit Frequency
-    )
-    
-    // Expose counter for sim check
     val receiveCount = out(UInt(32 bits))
 
-    // ALL Logic resides within this explicit ClockingArea
     val systemArea = new ClockingArea(systemClk) {
       val gen = new RtlGenerator()
-      val delay = new RtlDelayLine(PacketBundle(), latency = 5)
+      // Generic RtlDelayLine with PacketBundle
+      val delay = new RtlDelayLine(PacketBundle(), latency = latencyCycles)
       val sink = new RtlSink()
       
       gen.io.output >> delay.io.input
@@ -79,33 +64,38 @@ object RtlPureStressTest extends App {
     }
   }
 
-  // 4. Simulation
-  SimConfig.compile(new Top).doSim {
-    dut =>
-    // Drive the explicit clock domain
-    // Note: forkStimulus usually targets the component's default clock domain.
-    // Here we must target 'dut.systemClk' specifically.
-    
-    dut.systemClk.forkStimulus(period = 1000) // 1GHz (1ns period)
+  SimConfig.compile(new Top).doSim { dut =>
+    // 1 Cycle = 1000 ps (1ns)
+    dut.systemClk.forkStimulus(period = 1000) 
     
     println("Simulation started...")
     val startTime = System.nanoTime()
     
     var count = 0L
     while(count < targetPackets) {
-      dut.systemClk.waitSampling(1000) // Wait on specific clock
+      dut.systemClk.waitSampling(1000)
       count = dut.receiveCount.toLong
     }
     
     val endTime = System.nanoTime()
-    val durationMs = (endTime - startTime) / 1e6
+    val wallDurationMs = (endTime - startTime) / 1e6
+    // simTime() returns ps.
+    val simDurationPs = simTime() 
     
     println(s"\n--- Pure RTL Stress Test Results ---")
     println(s"Total Packets: $count")
-    println(s"Wall Time:     $durationMs ms")
-    if (durationMs > 0) {
-      val tput = (count * 1000.0) / durationMs
-      println(f"Throughput:    $tput%.2f packets/sec")
+    println(s"Sim Time:      $simDurationPs ps")
+    println(s"Wall Time:     $wallDurationMs ms")
+    
+    if (wallDurationMs > 0) {
+      val simSpeed = (count * 1000.0) / wallDurationMs
+      println(f"Sim Speed:     $simSpeed%.2f packets/sec (Real-time processing speed)")
+    }
+    
+    if (simDurationPs > 0) {
+      val bandwidth = (count * 1e12) / simDurationPs
+      println(f"Model BW:      $bandwidth%.2f packets/sec (Logical throughput)")
+      println(f"               ${bandwidth / 1e9}%.2f Gpps")
     }
   }
 }

@@ -6,12 +6,15 @@ import assap.perf.base._
 import assap.perf.types.{Packet, PacketType}
 
 object PerfStressTest extends App {
-  val packetCount = 100000 
-  
-  println(s"=== Assap Performance Stress Test ($packetCount packets) ===")
-  
+  val packetCount = 100000
+  val latencyVal = 5000 // 5ns
+
+  println(
+    s"=== Assap Performance Stress Test ($packetCount packets, Latency ${latencyVal}ps) ==="
+  )
+
   class Top extends Component {
-    val io = new Bundle { val done = out Bool() }
+    val io = new Bundle { val done = out Bool () }
     io.done := False
   }
 
@@ -21,32 +24,59 @@ object PerfStressTest extends App {
     // 1. Setup
     val q1 = new PerfFifo[Packet]("Q1", 100, trace = false)
     val q2 = new PerfFifo[Packet]("Q2", 100, trace = false)
-    
-    val gen = new PerfPacketGenerator("Gen", output = q1, srcId = 0, rate = 1.0, trace = false)
-    val delay = new PerfDelayLine[Packet]("Delay", input = q1, output = q2, latency = 5000)
+
+    // Gen Rate 1.0 -> 1 packet per 1 time unit? NO.
+    // In SW model, rate 1.0 means "generate every cycle".
+    // But our cycle is implicit sleep(1000).
+    // So 1 packet per 1ns. -> 1G pps.
+    val gen = new PerfPacketGenerator(
+      "Gen",
+      output = q1,
+      srcId = 0,
+      rate = 1.0,
+      trace = false
+    )
+
+    val delay = new PerfDelayLine[Packet](
+      "Delay",
+      input = q1,
+      output = q2,
+      latency = latencyVal
+    )
     val sink = new PerfSink("Sink", input = q2, trace = false)
 
     val components = Seq(gen, delay, sink)
-    components.foreach(_.run())
+    components.foreach(_.run(dut.clockDomain))
 
     println("Initialization complete. Starting measurement...")
     val startTime = System.nanoTime()
-    
-    // 2. Main Wait (Event-Driven)
-    // Wait until sink receives all packets. No polling sleep needed.
-    // Sim kernel checks this condition whenever threads yield.
+
+    // 2. Main Wait
     waitUntil(sink.receivedCount >= packetCount)
-    
+
     val endTime = System.nanoTime()
-    val durationMs = (endTime - startTime) / 1e6
-    
-    println(s"\n--- Stress Test Results ---")
+    val wallDurationMs = (endTime - startTime) / 1e6
+    val simDurationPs = simTime()
+
+    println(s"\n--- SW Perf Stress Test Results ---")
     println(s"Total Packets: ${sink.receivedCount}")
-    println(s"Sim Time:      ${simTime()} ps")
-    println(s"Wall Time:     $durationMs ms")
-    if (durationMs > 0) {
-      val tput = (sink.receivedCount * 1000.0) / durationMs
-      println(f"Throughput:    $tput%.2f packets/sec")
+    println(s"Latency Setting: $latencyVal ps")
+    println(s"Sim Time:      $simDurationPs ps")
+    println(s"Wall Time:     $wallDurationMs ms")
+
+    if (wallDurationMs > 0) {
+      val simSpeed = (sink.receivedCount * 1000.0) / wallDurationMs
+      println(
+        f"Sim Speed:     $simSpeed%.2f packets/sec (Real-time processing speed)"
+      )
+    }
+
+    if (simDurationPs > 0) {
+      // Bandwidth in packets/sec (1 sec = 1e12 ps)
+      // packets / (ps * 1e-12) = packets * 1e12 / ps
+      val bandwidth = (sink.receivedCount * 1e12) / simDurationPs
+      println(f"Model BW:      $bandwidth%.2f packets/sec (Logical throughput)")
+      println(f"               ${bandwidth / 1e9}%.2f Gpps")
     }
   }
 }

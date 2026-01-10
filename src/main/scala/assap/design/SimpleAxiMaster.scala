@@ -8,9 +8,9 @@ import spinal.lib.fsm._
 case class SimpleAxiMaster(config: Axi4Config) extends Component {
   val io = new Bundle {
     val axi = master(Axi4(config))
-    val done = out Bool()
-    val error = out Bool()
-    val stateDebug = out UInt(3 bits)
+    val done = out Bool ()
+    val error = out Bool ()
+    val stateDebug = out UInt (3 bits)
   }
 
   // Default output values
@@ -23,14 +23,15 @@ case class SimpleAxiMaster(config: Axi4Config) extends Component {
   io.done := False
   io.error := False
 
-  val writeData = Reg(UInt(32 bits)) init(0x12345678) allowUnsetRegToAvoidLatch
-  val readCheck = Reg(UInt(32 bits)) init(0)
-  val stateDebugReg = Reg(UInt(3 bits)) init(0)
-  io.stateDebug := stateDebugReg
+  val write_data =
+    Reg(UInt(32 bits)) init (0x12345678) allowUnsetRegToAvoidLatch
+  val read_check = Reg(UInt(32 bits)) init (0)
+  val state_debug_reg = Reg(UInt(3 bits)) init (0)
+  io.stateDebug := state_debug_reg
 
   // Handshake tracking registers
-  val awDone = RegInit(False)
-  val wDone = RegInit(False)
+  val aw_done = RegInit(False)
+  val w_done = RegInit(False)
 
   val fsm = new StateMachine {
     val IDLE = new State with EntryPoint
@@ -40,24 +41,24 @@ case class SimpleAxiMaster(config: Axi4Config) extends Component {
     val READ_DATA = new State
     val DONE = new State
 
-    stateDebugReg := 0
+    state_debug_reg := 0
 
     IDLE.whenIsActive {
-      stateDebugReg := 0
+      state_debug_reg := 0
       goto(WRITE)
     }
 
     WRITE.onEntry {
-      awDone := False
-      wDone := False
+      aw_done := False
+      w_done := False
     }
 
     // --- WRITE TRANSACTION (AW & W in parallel) ---
     WRITE.whenIsActive {
-      stateDebugReg := 1
-      
+      state_debug_reg := 1
+
       // Drive AW if not done
-      io.axi.aw.valid := !awDone
+      io.axi.aw.valid := !aw_done
       io.axi.aw.addr := 0x100
       io.axi.aw.id := 0
       io.axi.aw.len := 0
@@ -65,33 +66,33 @@ case class SimpleAxiMaster(config: Axi4Config) extends Component {
       io.axi.aw.burst := 1
 
       // Drive W if not done
-      io.axi.w.valid := !wDone
-      io.axi.w.data.assignFromBits(writeData.asBits)
-      io.axi.w.strb := 0xF
+      io.axi.w.valid := !w_done
+      io.axi.w.data.assignFromBits(write_data.asBits)
+      io.axi.w.strb := 0xf
       io.axi.w.last := True
-      
+
       // Check for fires
-      when(io.axi.aw.fire) { awDone := True }
-      when(io.axi.w.fire)  { wDone := True }
+      when(io.axi.aw.fire) { aw_done := True }
+      when(io.axi.w.fire) { w_done := True }
 
       // Check completion (current fire OR previously done)
-      val awFinished = awDone || io.axi.aw.fire
-      val wFinished  = wDone || io.axi.w.fire
+      val aw_finished = aw_done || io.axi.aw.fire
+      val w_finished = w_done || io.axi.w.fire
 
-      when(awFinished && wFinished) {
+      when(aw_finished && w_finished) {
         goto(WRITE_RESP)
       }
     }
 
     WRITE_RESP.whenIsActive {
-      stateDebugReg := 3
+      state_debug_reg := 3
       when(io.axi.b.valid) {
         goto(READ_ADDR)
       }
     }
 
     READ_ADDR.whenIsActive {
-      stateDebugReg := 4
+      state_debug_reg := 4
       io.axi.ar.valid := True
       io.axi.ar.addr := 0x100
       io.axi.ar.id := 0
@@ -105,9 +106,9 @@ case class SimpleAxiMaster(config: Axi4Config) extends Component {
     }
 
     READ_DATA.whenIsActive {
-      stateDebugReg := 5
+      state_debug_reg := 5
       when(io.axi.r.valid) {
-        when(io.axi.r.data.asUInt =/= writeData) {
+        when(io.axi.r.data.asUInt =/= write_data) {
           io.error := True
         }
         goto(DONE)
@@ -115,7 +116,7 @@ case class SimpleAxiMaster(config: Axi4Config) extends Component {
     }
 
     DONE.whenIsActive {
-      stateDebugReg := 6
+      state_debug_reg := 6
       io.done := True
     }
   }
