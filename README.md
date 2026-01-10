@@ -50,12 +50,36 @@ ASSAP Performance models use **Absolute Time Delay** for maximum flexibility.
 *   sbt (Scala Build Tool)
 *   Verilator (for RTL and Mixed-mode simulation) (v4.200 recommended)
 
-### Running Stress Tests
-Compare performance between different modeling styles:
+### Performance Benchmarks
+Comparison of simulation speeds for a 5-Stage Delay Line (500k packets):
+
+| Model Type | Implementation | Speed (kpps) | Relative Speed |
+| :--- | :--- | :--- | :--- |
+| **SimPy** | Python (Event-Driven) | ~50 kpps | 1.0x |
+| **Assap Perf** | Scala (SW Coroutine) | ~20 kpps | 0.4x |
+| **Assap Design** | **Verilator (RTL)** | **~1,000 kpps** | **20.0x** |
+
+#### Scalability Test (Background Traffic)
+Measuring the impact of running background NAND models alongside the main datapath:
+
+| Scenario | Active Instances | Speed (kpps) | Impact |
+| :--- | :--- | :--- | :--- |
+| **Baseline** | 5 Delay Lines | ~1,000 kpps | - |
+| **Heavy Load** | +128 NAND Models | ~850 kpps | -15% |
+| **Massive Load** | **+1024 NAND Models** | **~890 kpps** | **-11%** |
+
+*Verilator demonstrates near-zero marginal cost for scaling up parallel instances, making it ideal for massive architecture exploration.*
+
+### Running the Tests
 ```bash
-sbt "runMain assap.examples.perf_stress_test"     # Pure SW (~53k pps)
-sbt "runMain assap.examples.rtl_stress_test"      # Mixed SW/HW
-sbt "runMain assap.examples.rtl_pure_stress_test"  # Pure RTL (~740k pps)
+# 1. SW Performance Model
+sbt "runMain assap.examples.perf_stress_test"
+
+# 2. Pure RTL Stress Test (Baseline)
+sbt "runMain assap.examples.rtl_pure_stress_test"
+
+# 3. Massive RTL Stress Test (1024 NANDs)
+sbt "runMain assap.examples.rtl_massive_stress_test"
 ```
 
 ## Design Philosophy

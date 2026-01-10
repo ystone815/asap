@@ -8,7 +8,7 @@ class perf_arbiter[T](
     inputs: Seq[perf_fifo[T]],
     output: perf_fifo[T]
 ) extends sim_component {
-  private var rrIndex = 0
+  private var rr_index = 0
 
   override def run(cd: ClockDomain): Unit = {
     fork {
@@ -17,13 +17,13 @@ class perf_arbiter[T](
         var i = 0
 
         while (!transferred && i < inputs.size) {
-          val idx = (rrIndex + i) % inputs.size
+          val idx = (rr_index + i) % inputs.size
           val src = inputs(idx)
 
-          if (src.nonEmpty) {
+          if (src.non_empty) {
             val pkt = src.read()
             output.write(pkt)
-            rrIndex = (idx + 1) % inputs.size
+            rr_index = (idx + 1) % inputs.size
             transferred = true
           }
           i += 1

@@ -6,12 +6,12 @@ import spinal.lib._
 import assap.design.base.packet_bundle
 import assap.design.rtl_delay_line
 
-object rtl_pure_stress_test extends App {
+object rtl_massive_stress_test extends App {
   val targetPackets = 100000
   val latencyCycles = 5 // 5 cycles * 1ns period = 5ns
 
   println(
-    s"=== ASSAP Pure RTL Stress Test ($targetPackets packets, Latency ${latencyCycles} cycles) ==="
+    s"=== ASSAP Massive RTL Stress Test (1024 NANDs) ==="
   )
 
   class RtlGenerator extends Component {
@@ -80,6 +80,21 @@ object rtl_pure_stress_test extends App {
       delays.last.io.output >> sink.io.input
 
       receiveCount := sink.io.count
+
+      // ==========================================
+      // Background Traffic: 1024 Parallel NAND Models
+      // ==========================================
+      val bgPlanes = for (i <- 0 until 1024) yield new Area {
+        val nand =
+          new assap.design.simple_nand_model(tR_cycles = 20000) // 20us tR
+
+        // Traffic Gen: Always push commands
+        nand.io.cmd.valid := True
+        nand.io.cmd.payload := B(i, 32 bits)
+
+        // Sink: Always consume data
+        nand.io.data.ready := True
+      }
     }
   }
 
@@ -101,7 +116,7 @@ object rtl_pure_stress_test extends App {
     // simTime() returns ps.
     val simDurationPs = simTime()
 
-    println(s"\n--- Pure RTL Stress Test Results ---")
+    println(s"\n--- Massive RTL Stress Test Results ---")
     println(s"Total Packets: $count")
     println(s"Sim Time:      $simDurationPs ps")
     println(s"Wall Time:     $wallDurationMs ms")

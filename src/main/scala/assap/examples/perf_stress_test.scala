@@ -8,7 +8,7 @@ import assap.perf.types.{packet, packet_type}
 
 object perf_stress_test extends App {
   // Increase packet count for meaningful performance data
-  val packetCount = 100000
+  val packetCount = 500000
   val latencyVal = 5 // 5ns
 
   println(s"=== ASSAP Perf Stress Test ($packetCount packets) ===")
@@ -24,14 +24,24 @@ object perf_stress_test extends App {
   compiled.doSim { dut =>
     dut.clockDomain.forkStimulus(period = 1000)
     // Setup components
-    val q1 = new perf_fifo[packet]("Q1", 1000)
-    val q2 = new perf_fifo[packet]("Q2", 1000)
+    // 5-Stage Delay Line Chain
+    val stages = 5
+    val queues = (0 to stages).map(i => new perf_fifo[packet](s"Q$i", 1000))
 
-    val gen = new perf_packet_generator("Gen", q1, 0, 1.0)
-    val delay = new perf_delay_line[packet]("Delay", q1, q2, latencyVal)
-    val sink = new perf_sink("Sink", q2)
+    val gen = new perf_packet_generator("Gen", queues(0), 0, 1.0)
 
-    val components = Seq(gen, delay, sink)
+    val delays = (0 until stages).map { i =>
+      new perf_delay_line[packet](
+        s"Delay$i",
+        queues(i),
+        queues(i + 1),
+        latencyVal
+      )
+    }
+
+    val sink = new perf_sink("Sink", queues.last)
+
+    val components = Seq(gen, sink) ++ delays
 
     // Start simulation threads
     components.foreach(_.run(dut.clockDomain))

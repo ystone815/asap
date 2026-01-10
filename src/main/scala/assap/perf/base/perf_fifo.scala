@@ -13,23 +13,23 @@ class perf_fifo[T](
     override val trace: Boolean = false
 ) extends sim_component {
   private val queue = mutable.Queue[T]()
-  private var droppedCount = 0
+  private var dropped_count = 0
 
   if (trace) {
     addTraceVar("size")
     addTraceVar("dropped")
   }
 
-  def isFull: Boolean = queue.size >= capacity
-  def isEmpty: Boolean = queue.isEmpty
-  def nonEmpty: Boolean = queue.nonEmpty
+  def is_full: Boolean = queue.size >= capacity
+  def is_empty: Boolean = queue.isEmpty
+  def non_empty: Boolean = queue.nonEmpty
   def size: Int = queue.size
 
   /** Blocking Write: waits until space is available.
     */
   def write(data: T): Unit = {
-    if (isFull) {
-      waitUntil(!isFull)
+    if (is_full) {
+      waitUntil(!is_full)
     }
     queue.enqueue(data)
     if (trace) updateTraceVar("size", queue.size)
@@ -38,8 +38,8 @@ class perf_fifo[T](
   /** Blocking Read: waits until data is available.
     */
   def read(): T = {
-    if (isEmpty) {
-      waitUntil(nonEmpty)
+    if (is_empty) {
+      waitUntil(non_empty)
     }
     val data = queue.dequeue()
     if (trace) updateTraceVar("size", queue.size)
