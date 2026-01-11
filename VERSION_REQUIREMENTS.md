@@ -32,7 +32,7 @@ Since `sbt` attempts to download dependencies at runtime, moving the project to 
 1.  **On Online PC (Source):**
     *   Run a full simulation to ensure all dependencies are downloaded:
         ```bash
-        sbt "runMain assap.examples.RtlStressTest"
+        sbt "runMain asap.examples.RtlStressTest"
         ```
 2.  **Copy Cache Directories:**
     *   Archive and copy the following directories from the User Home (`~`) to the same location on the offline PC:
