@@ -27,3 +27,14 @@ project/project/target/
 
 # SpinalHDL Simulation Workspace
 simWorkspace/
+
+# Simulation Logs and Outputs
+logs/
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.pytest_cache/
