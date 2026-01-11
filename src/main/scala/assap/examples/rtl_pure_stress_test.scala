@@ -117,6 +117,26 @@ object rtl_pure_stress_test extends App {
       val bandwidth = (count * 1e12) / simDurationPs
       println(f"Model BW:      $bandwidth%.2f packets/sec (Logical throughput)")
       println(f"               ${bandwidth / 1e9}%.2f Gpps")
+
+      // Engine Speed (Cycles/sec)
+      // 1000 ps period = 1ns = 1 GHz clock.
+      // Total cycles = simDurationPs / 1000
+      val totalCycles = simDurationPs / 1000
+      val engineSpeed = (totalCycles * 1000.0) / wallDurationMs
+      println(
+        f"Engine Speed:  ${engineSpeed / 1e6}%.2f MHz (Simulated Clock Speed)"
+      )
+
+      val simRate =
+        simDurationPs / (wallDurationMs * 1e9) // (ps / ns) / 1e9 bad unit.
+      // Sim Sim Time (ms) per Wall Time (sec)
+      // simDurationPs / 1e9 = simDurationMs
+      // wallDurationMs / 1000 = wallDurationSec
+      val simTimeMs = simDurationPs / 1e9
+      val wallTimeSec = wallDurationMs / 1000.0
+      println(
+        f"Sim Rate:      ${simTimeMs / wallTimeSec}%.4f ms (Sim Time) / sec (Wall Time)"
+      )
     }
   }
 }

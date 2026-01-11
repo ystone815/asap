@@ -71,15 +71,16 @@ Measuring the impact of running background NAND models alongside the main datapa
 *Verilator demonstrates near-zero marginal cost for scaling up parallel instances, making it ideal for massive architecture exploration.*
 
 ### Running the Tests
+We provide a helper script to run benchmarks and manage logs (saved to `logs/` with timestamps).
+
 ```bash
-# 1. SW Performance Model
-sbt "runMain assap.examples.perf_stress_test"
+# Run all benchmarks
+./run_benchmarks.sh all
 
-# 2. Pure RTL Stress Test (Baseline)
-sbt "runMain assap.examples.rtl_pure_stress_test"
-
-# 3. Massive RTL Stress Test (1024 NANDs)
-sbt "runMain assap.examples.rtl_massive_stress_test"
+# Run specific test
+./run_benchmarks.sh pure    # Pure RTL (Baseline)
+./run_benchmarks.sh massive # Massive RTL (1024 NANDs)
+./run_benchmarks.sh sw      # SW Model
 ```
 
 ## Design Philosophy

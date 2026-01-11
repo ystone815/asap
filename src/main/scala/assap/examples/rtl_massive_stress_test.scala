@@ -132,6 +132,19 @@ object rtl_massive_stress_test extends App {
       val bandwidth = (count * 1e12) / simDurationPs
       println(f"Model BW:      $bandwidth%.2f packets/sec (Logical throughput)")
       println(f"               ${bandwidth / 1e9}%.2f Gpps")
+
+      // Engine Speed (Cycles/sec)
+      val totalCycles = simDurationPs / 1000
+      val engineSpeed = (totalCycles * 1000.0) / wallDurationMs
+      println(
+        f"Engine Speed:  ${engineSpeed / 1e6}%.2f MHz (Simulated Clock Speed)"
+      )
+
+      val simTimeMs = simDurationPs / 1e9
+      val wallTimeSec = wallDurationMs / 1000.0
+      println(
+        f"Sim Rate:      ${simTimeMs / wallTimeSec}%.4f ms (Sim Time) / sec (Wall Time)"
+      )
     }
   }
 }
