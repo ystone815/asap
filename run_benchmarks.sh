@@ -50,18 +50,23 @@ case "$1" in
     "write")
         run_test "rtl_write" "ssd_write_benchmark"
         ;;
+    "cxl")
+        run_test "rtl_cxl" "cxl_dram_test"
+        ;;
     "all")
         run_test "rtl_pure" "rtl_pure_stress_test"
         run_test "rtl_massive" "rtl_massive_stress_test"
         run_test "rtl_ssd" "ssd_architecture_test"
         run_test "rtl_write" "ssd_write_benchmark"
+        run_test "rtl_cxl" "cxl_dram_test"
         ;;
     *)
-        echo "Usage: $0 {pure|massive|ssd|write|sw|all}"
+        echo "Usage: $0 {pure|massive|ssd|write|cxl|sw|all}"
         echo "  pure    : Run RTL Phase Stress Test (Baseline)"
         echo "  massive : Run RTL Massive Stress Test (1024 NANDs)"
         echo "  ssd     : Run Full SSD Architecture Test (16 Ch, 1024 Die, QD 2048)"
         echo "  write   : Run Write Workload (48:1 Aggregation)"
+        echo "  cxl     : Run CXL-DRAM System Test"
         echo "  sw      : Run SW Performance Model Stress Test"
         echo "  all     : Run all benchmarks"
         exit 1
