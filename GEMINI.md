@@ -78,4 +78,6 @@ This file stores the design philosophy, coding conventions, and lessons learned 
 ### 결론 (Conclusion)
 1.  **Feasibility**: 1024개의 NAND와 복잡한 상호연결망(Interconnect)을 RTL로 구현해도, **수 분 내에 수 초 분량의 동작**을 검증할 수 있습니다.
 2.  **Efficiency**: Verilator의 최적화 덕분에 SW 모델링(SystemC/Python) 없이도 **RTL만으로 아키텍처 탐색 및 펌웨어 검증**이 가능한 속도가 나옵니다.
+    *   **SimPy (Python)**: ~100-400 Cmd/sec (User Experience)
+    *   **RTL (Verilator)**: ~3,600 - 16,000 Cmd/sec (Measured) -> **~40x Speedup**
 3.  **Accuracy**: Cycle-Accurate 모델이므로 타이밍 이슈나 병목 지점을 정확히 찾아낼 수 있습니다.

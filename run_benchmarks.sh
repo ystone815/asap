@@ -44,16 +44,26 @@ case "$1" in
     "sw")
         run_test "perf_sw" "perf_stress_test"
         ;;
+    "ssd")
+        run_test "rtl_ssd" "ssd_architecture_test"
+        ;;
+    "write")
+        run_test "rtl_write" "ssd_write_benchmark"
+        ;;
     "all")
         run_test "rtl_pure" "rtl_pure_stress_test"
         run_test "rtl_massive" "rtl_massive_stress_test"
+        run_test "rtl_ssd" "ssd_architecture_test"
+        run_test "rtl_write" "ssd_write_benchmark"
         ;;
     *)
-        echo "Usage: $0 {pure|massive|sw|all}"
+        echo "Usage: $0 {pure|massive|ssd|write|sw|all}"
         echo "  pure    : Run RTL Phase Stress Test (Baseline)"
         echo "  massive : Run RTL Massive Stress Test (1024 NANDs)"
+        echo "  ssd     : Run Full SSD Architecture Test (16 Ch, 1024 Die, QD 2048)"
+        echo "  write   : Run Write Workload (48:1 Aggregation)"
         echo "  sw      : Run SW Performance Model Stress Test"
-        echo "  all     : Run both RTL benchmarks"
+        echo "  all     : Run all benchmarks"
         exit 1
         ;;
 esac
