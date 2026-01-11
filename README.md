@@ -1,6 +1,6 @@
-# ASSAP (Accelerated Samsung Solution Architecture Platform)
+# ASAP (Accelerated System Architecture Platform)
 
-ASSAP is a dual-purpose platform designed for both **Synthesizable RTL Design** (using SpinalHDL) and **High-Level Performance Modeling** (using Scala). It aims to bridge the gap between architectural exploration and hardware implementation.
+**ASAP** is an open-source framework for **Unified System Architecture & RTL Design**. It bridges the gap between high-level performance modeling (Scala) and synthesizable hardware implementation (SpinalHDL), enabling rapid architectural exploration and verification.
 
 ## Key Features
 
