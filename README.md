@@ -4,13 +4,13 @@
 
 ## Key Features
 
-### 1. Synthesizable RTL Design (`assap.design`)
+### 1. Synthesizable RTL Design (`asap.design`)
 *   **SpinalHDL based:** High-productivity hardware description.
 *   **AXI4 Support:** Robust AXI4 Master/Slave implementations and utilities.
-*   **Base Library:** Common synthesizable utilities in `assap.design.base`.
+*   **Base Library:** Common synthesizable utilities in `asap.design.base`.
 *   **Generic RTL Models:** Reusable hardware components like `rtl_delay_line[T]`.
 
-### 2. Performance Modeling (`assap.perf`)
+### 2. Performance Modeling (`asap.perf`)
 *   **Event-Driven Modeling:** Efficient simulation using `waitUntil` and `sleep`.
 *   **SimPy-Style Blocking:** Direct `read()` and `write()` methods on FIFOs.
 *   **Generic Components:** Type-agnostic base library (`perf_fifo[T]`, `perf_arbiter[T]`, `perf_router[T]`, `perf_delay_line[T]`).
@@ -25,22 +25,22 @@
 
 ```
 src/
-├── main/scala/assap/
+├── main/scala/asap/
 │   ├── design/             # Synthesizable RTL
-│   │   ├── base/           # Common RTL utilities (axi_utils, assap_config, packet_bundle)
+│   │   ├── base/           # Common RTL utilities (axi_utils, asap_config, packet_bundle)
 │   │   └── ...             # IP and System definitions
 │   ├── perf/               # Performance Modeling
 │   │   ├── base/           # Generic Sim Components (perf_fifo, perf_arbiter, etc.)
 │   │   └── types/          # Data structures (packet)
 │   └── examples/           # Runnable examples and stress tests
-└── test/scala/assap/       # Unit Tests
+└── test/scala/asap/       # Unit Tests
     └── perf/base/          # Tests for Performance Library
 ```
 
 ## Getting Started
 
 ### Simulation Time and Units
-ASSAP Performance models use **Absolute Time Delay** for maximum flexibility.
+ASAP Performance models use **Absolute Time Delay** for maximum flexibility.
 *   **Base Time Unit:** 1 Time Unit = **1ps (picosecond)**.
 *   **Standard Scale:** 1ns = 1000ps.
 *   **High Resolution:** Allows modeling fractional utilization (e.g., `sleep(500)` for 0.5ns) using integer logic.
@@ -56,7 +56,7 @@ Comparison of simulation speeds across different scenarios. Note that "User Ops/
 | Scenario | Implementation | Scale | Engine Speed | Wall Time (1s Sim) | Throughput (Simulated) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **SimPy Baseline** | Python (Event) | N/A | N/A | ~10 sec | ~100-400 Ops/sec |
-| **Pure Delay Line** | Assap RTL (Verilator) | 5 Stages | **0.87 MHz** | ~1.15 sec | ~870,000 Ops/sec |
+| **Pure Delay Line** | Asap RTL (Verilator) | 5 Stages | **0.87 MHz** | ~1.15 sec | ~870,000 Ops/sec |
 | **Massive Stress** | +1024 Background NANDs | 1024 Dies | **1.11 MHz** | ~0.90 sec | ~1,100,000 Ops/sec |
 | **Full SSD (Read)** | 16 Ch x 64 Die, QD 2k | 1024 Dies | **0.17 MHz** | ~6.0 sec | ~8,500 Ops/sec |
 | **Full SSD (Write)** | 1024 Die, QD 64k, Agg 48:1 | 1024 Dies | **0.06 MHz** | ~17.0 sec | **~16,000 Ops/sec** |

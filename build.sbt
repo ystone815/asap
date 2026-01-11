@@ -1,4 +1,4 @@
-name := "assap"
+name := "asap"
 
 version := "0.1"
 

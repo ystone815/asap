@@ -20,7 +20,7 @@ function run_test() {
     export PATH=$HOME/tools/verilator_v4.200/bin:$PATH 
     export VERILATOR_ROOT=$HOME/tools/verilator_v4.200/share/verilator
     
-    sbt "runMain assap.examples.$CLASS_NAME" > "$LOG_FILE" 2>&1
+    sbt "runMain asap.examples.$CLASS_NAME" > "$LOG_FILE" 2>&1
     
     # Move VCDs to output folder (if generated)
     mv *.vcd output/ 2>/dev/null

@@ -1,6 +1,6 @@
 # Gemini Project Context & Memories
 
-This file stores the design philosophy, coding conventions, and lessons learned for the `assap` (Accelerated Samsung Solution Architecture Platform) project.
+This file stores the design philosophy, coding conventions, and lessons learned for the `asap` (Accelerated Samsung Solution Architecture Platform) project.
 
 ## Core Design Philosophy
 
@@ -8,14 +8,14 @@ This file stores the design philosophy, coding conventions, and lessons learned 
     *   Prefer implementing a **Synthesizable Hardware Master** (e.g., `simple_axi_master`) to drive the DUT.
     *   This ensures the testbench itself is closer to the real hardware environment.
 
-2.  **Performance Modeling (`assap.perf`):**
+2.  **Performance Modeling (`asap.perf`):**
     *   **Simplicity First:** Use `perf_fifo[T]` directly as the port and channel. Avoid wrapper classes.
     *   **Blocking I/O (Standard API):** Use **`read()`** and **`write(data)`** as the primary blocking methods. These align with SimPy/SystemC paradigms and handle backpressure implicitly.
     *   **Event-Driven Efficiency:** Use **`waitUntil(condition)`** inside `perf_fifo` to avoid busy-waiting or polling loops, significantly increasing simulation throughput.
     *   **Explicit Connectivity:** Pass `perf_fifo` references through component constructors to define the topology during instantiation.
     *   **Mixed-Mode Ready:** The simulation environment runs on SpinalSim's `ClockDomain`, supporting interaction between SW Models and RTL via adapters.
 
-3.  **AXI4 Handling (`assap.design`):**
+3.  **AXI4 Handling (`asap.design`):**
     *   **Handshake Safety:** When designing Masters, use independent or parallel assertion of `AW` and `W` valid signals to avoid deadlocks.
     *   **Connection:** Use `axi_utils.drive(slave: Axi4)` for direct AXI4-to-AXI4 connections.
 
