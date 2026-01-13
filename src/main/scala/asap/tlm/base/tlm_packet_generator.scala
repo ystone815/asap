@@ -1,17 +1,17 @@
-package asap.perf.base
+package asap.tlm.base
 
 import scala.util.Random
-import asap.perf.types.{packet, packet_type}
+import asap.tlm.types.{packet, packet_type}
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class perf_packet_generator(
+class tlm_packet_generator(
     val name: String,
-    output: perf_fifo[packet],
+    output: tlm_fifo[packet],
     srcId: Int,
     rate: Double,
     override val trace: Boolean = false
-) extends sim_component {
+) extends tlm_component {
   val rand = new Random(srcId)
   var pCounter = 0
 

@@ -1,14 +1,14 @@
-package asap.perf.base
+package asap.tlm.base
 
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class perf_router[T](
+class tlm_router[T](
     val name: String,
-    input: perf_fifo[T],
-    outputs: Map[Int, perf_fifo[T]],
+    input: tlm_fifo[T],
+    outputs: Map[Int, tlm_fifo[T]],
     getDest: T => Int
-) extends sim_component {
+) extends tlm_component {
 
   override def run(cd: ClockDomain): Unit = {
     fork {

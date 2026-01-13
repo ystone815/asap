@@ -3,6 +3,7 @@ package asap.design
 import spinal.core._
 import spinal.lib.bus.amba4.axi._
 import asap.examples.simple_axi_sram
+import asap.arch.arch_axi_master
 
 // Note: simple_axi_sram is in examples package.
 
@@ -25,7 +26,7 @@ class asap_system extends Component {
   )
 
   // 2. Instantiate Components
-  val master = simple_axi_master(axiConfig)
+  val master = arch_axi_master(axiConfig)
   val sram = new simple_axi_sram(
     addressWidth = 32,
     dataWidth = 32,

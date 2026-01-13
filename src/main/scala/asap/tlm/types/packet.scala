@@ -1,4 +1,4 @@
-package asap.perf.types
+package asap.tlm.types
 
 /** Packet type definitions for performance modeling
   */

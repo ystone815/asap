@@ -1,4 +1,4 @@
-package asap.perf.base
+package asap.tlm.base
 
 import scala.collection.mutable
 import spinal.core.sim._
@@ -7,11 +7,11 @@ import spinal.core.ClockDomain
 /** A standard FIFO buffer for performance modeling. Uses event-driven blocking
   * (waitUntil) for efficient synchronization.
   */
-class perf_fifo[T](
+class tlm_fifo[T](
     val name: String,
     val capacity: Int,
     override val trace: Boolean = false
-) extends sim_component {
+) extends tlm_component {
   private val queue = mutable.Queue[T]()
   private var dropped_count = 0
 

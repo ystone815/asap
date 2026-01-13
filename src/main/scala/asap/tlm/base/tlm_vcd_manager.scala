@@ -1,11 +1,11 @@
-package asap.perf.base
+package asap.tlm.base
 
 import java.io.{BufferedWriter, File, FileWriter}
 import scala.collection.mutable
 
 /** A lightweight VCD (Value Change Dump) generator for performance simulation.
   */
-object perf_vcd_manager {
+object tlm_vcd_manager {
   private var writer: Option[BufferedWriter] = None
   private var startTime: Long = 0
 

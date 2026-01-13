@@ -1,11 +1,11 @@
-package asap.perf.base
+package asap.tlm.base
 
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
 /** Base trait for all performance simulation components.
   */
-trait sim_component {
+trait tlm_component {
   def name: String
 
   // Tracing support
@@ -15,11 +15,11 @@ trait sim_component {
   def run(cd: ClockDomain): Unit
 
   protected def addTraceVar(varName: String): Unit = {
-    if (trace) perf_vcd_manager.register(name, varName, 32)
+    if (trace) tlm_vcd_manager.register(name, varName, 32)
   }
 
   protected def updateTraceVar(varName: String, value: Long): Unit = {
-    if (trace) perf_vcd_manager.update(name, varName, value)
+    if (trace) tlm_vcd_manager.update(name, varName, value)
   }
 
   // Use absolute simulation time directly

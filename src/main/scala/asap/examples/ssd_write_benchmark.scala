@@ -3,8 +3,8 @@ package asap.examples
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
-import asap.design.base.{ram_delay_line, WriteAggregator}
-import asap.design.simple_nand_model
+import asap.design.base.{ram_delay_line, write_aggregator}
+import asap.arch.arch_nand
 import scala.util.Random
 
 /** SSD Write Benchmark (Program Operation)
@@ -27,7 +27,7 @@ object ssd_write_benchmark extends App {
   val upstreamDelayCycles = 10000 // 10us
   val nandProgramCycles = 1000000 // 1ms (Slow Program)
 
-  class Top extends Component {
+  class SsdWriteTop extends Component {
     val systemClkConfig =
       ClockDomainConfig(resetKind = SYNC, resetActiveLevel = HIGH)
     val clk = in Bool ()
@@ -100,10 +100,11 @@ object ssd_write_benchmark extends App {
 
         val dieOutputs = for (d <- 0 until diesPerChannel) yield new Area {
           // Aggregator: 48 Cmds -> 1 Nand Op
-          val aggregator = new WriteAggregator(aggregationFactor, Bits(32 bits))
+          val aggregator =
+            new write_aggregator(aggregationFactor, Bits(32 bits))
           aggregator.io.cmdIn << diesCmd(d)
 
-          val nand = new simple_nand_model(tR_cycles = nandProgramCycles)
+          val nand = new arch_nand(tR_cycles = nandProgramCycles)
           nand.io.cmd << aggregator.io.cmdOut
 
           aggregator.io.rspIn << nand.io.data
@@ -137,7 +138,7 @@ object ssd_write_benchmark extends App {
   }
 
   SimConfig
-    .compile(new Top)
+    .compile(new SsdWriteTop)
     .doSim { dut =>
       dut.systemClk.forkStimulus(period = 1000)
       dut.systemClk.waitSampling(100)
@@ -172,11 +173,11 @@ object ssd_write_benchmark extends App {
 
       println(s"\n--- Write Benchmark Results ---")
       println(s"Total User Ops: $ops")
-      println(s"Wall Time: $durationMs ms")
+      println(s"Real Time: $durationMs ms")
       println(s"Sim Time: ${simDurationPs / 1e9} sec")
 
       val flowRate = (simDurationPs / 1e9) / (durationMs / 1000.0)
-      println(f"Flow Rate: ${flowRate * 1000}%.2f ms (Sim) / sec (Wall)")
+      println(f"Flow Rate: ${flowRate * 1000}%.2f ms (Sim) / sec (Real)")
 
       val engineSpeedMHz = (simDurationPs / 1000.0) / (durationMs * 1000.0)
       println(f"Engine Speed: $engineSpeedMHz%.2f MHz")

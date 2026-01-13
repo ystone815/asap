@@ -45,7 +45,7 @@ object rtl_massive_stress_test extends App {
     io.count := counter
   }
 
-  class Top extends Component {
+  class RtlMassiveTop extends Component {
     val systemClkConfig =
       ClockDomainConfig(resetKind = SYNC, resetActiveLevel = HIGH)
     val clk = in Bool ()
@@ -86,7 +86,7 @@ object rtl_massive_stress_test extends App {
       // ==========================================
       val bgPlanes = for (i <- 0 until 1024) yield new Area {
         val nand =
-          new asap.design.simple_nand_model(tR_cycles = 20000) // 20us tR
+          new asap.arch.arch_nand(tR_cycles = 20000) // 20us tR
 
         // Traffic Gen: Always push commands
         nand.io.cmd.valid := True
@@ -98,7 +98,7 @@ object rtl_massive_stress_test extends App {
     }
   }
 
-  SimConfig.compile(new Top).doSim { dut =>
+  SimConfig.compile(new RtlMassiveTop).doSim { dut =>
     // 1 Cycle = 1000 ps (1ns)
     dut.systemClk.forkStimulus(period = 1000)
 
@@ -119,7 +119,7 @@ object rtl_massive_stress_test extends App {
     println(s"\n--- Massive RTL Stress Test Results ---")
     println(s"Total Packets: $count")
     println(s"Sim Time:      $simDurationPs ps")
-    println(s"Wall Time:     $wallDurationMs ms")
+    println(s"Real Time:     $wallDurationMs ms")
 
     if (wallDurationMs > 0) {
       val simSpeed = (count * 1000.0) / wallDurationMs
@@ -143,7 +143,7 @@ object rtl_massive_stress_test extends App {
       val simTimeMs = simDurationPs / 1e9
       val wallTimeSec = wallDurationMs / 1000.0
       println(
-        f"Sim Rate:      ${simTimeMs / wallTimeSec}%.4f ms (Sim Time) / sec (Wall Time)"
+        f"Sim Rate:      ${simTimeMs / wallTimeSec}%.4f ms (Sim Time) / sec (Real Time)"
       )
     }
   }

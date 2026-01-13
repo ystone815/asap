@@ -6,7 +6,7 @@ import spinal.lib._
 /** Aggregates N commands into 1, and expands 1 response into N. Used to model
   * Write Buffer aggregation (e.g., 4KB -> 192KB).
   */
-class WriteAggregator(aggregationFactor: Int, dataType: HardType[Bits])
+class write_aggregator(aggregationFactor: Int, dataType: HardType[Bits])
     extends Component {
   val io = new Bundle {
     val cmdIn = slave Stream (dataType)

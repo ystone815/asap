@@ -1,4 +1,4 @@
-package asap.perf.base
+package asap.tlm.base
 
 import spinal.core.sim._
 import spinal.core.ClockDomain
@@ -6,12 +6,12 @@ import spinal.core.ClockDomain
 /** Delays packets for a fixed number of time units. Connects directly to input
   * and output FIFOs.
   */
-class perf_delay_line[T](
+class tlm_delay_line[T](
     val name: String,
-    input: perf_fifo[T],
-    output: perf_fifo[T],
+    input: tlm_fifo[T],
+    output: tlm_fifo[T],
     val latency: Int
-) extends sim_component {
+) extends tlm_component {
 
   override def run(cd: ClockDomain): Unit = {
     fork {

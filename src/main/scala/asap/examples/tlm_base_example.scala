@@ -1,18 +1,17 @@
 package asap.examples
 
+import asap.tlm.base._
+import asap.tlm.types.{packet, packet_type}
 import spinal.core._
 import spinal.core.sim._
-import spinal.lib._
-import asap.perf.base._
-import asap.perf.types.{packet, packet_type}
 
-object perf_stress_test extends App {
-  // Increase packet count for meaningful performance data
-  val packetCount = 500000
-  val latencyVal = 5 // 5ns
+object tlm_base_example extends App {
+  val packetCount = 100
+  val latencyVal = 500 // 500 ps
 
-  println(s"=== ASAP Perf Stress Test ($packetCount packets) ===")
+  println(s"=== ASAP Perf Base Example ($packetCount packets) ===")
 
+  // Dummy Top for SpinalSim
   class Top extends Component {
     val io = new Bundle { val done = out Bool () }
     io.done := False
@@ -20,36 +19,35 @@ object perf_stress_test extends App {
 
   val compiled = SimConfig.compile(new Top)
 
-  // Reuse the compiled simulation
-  compiled.doSim { dut =>
-    dut.clockDomain.forkStimulus(period = 1000)
-    // Setup components
-    // 5-Stage Delay Line Chain
-    val stages = 5
-    val queues = (0 to stages).map(i => new perf_fifo[packet](s"Q$i", 1000))
+  compiled.doSim { (dut: Top) =>
+    // 1. Setup
+    val q1 = new tlm_fifo[packet]("Q1", 100, trace = false)
+    val q2 = new tlm_fifo[packet]("Q2", 100, trace = false)
 
-    val gen = new perf_packet_generator("Gen", queues(0), 0, 1.0)
+    // Gen Rate 1.0 -> 1ns -> 1G pps.
+    val gen = new tlm_packet_generator(
+      "Gen",
+      output = q1,
+      srcId = 0,
+      rate = 1.0,
+      trace = false
+    )
 
-    val delays = (0 until stages).map { i =>
-      new perf_delay_line[packet](
-        s"Delay$i",
-        queues(i),
-        queues(i + 1),
-        latencyVal
-      )
-    }
+    val delay = new tlm_delay_line[packet](
+      "Delay",
+      input = q1,
+      output = q2,
+      latency = latencyVal
+    )
+    val sink = new tlm_sink("Sink", input = q2, trace = false)
 
-    val sink = new perf_sink("Sink", queues.last)
-
-    val components = Seq(gen, sink) ++ delays
-
-    // Start simulation threads
+    val components = Seq(gen, delay, sink)
     components.foreach(_.run(dut.clockDomain))
 
-    println("Simulation started...")
+    println("Initialization complete. Starting measurement...")
     val startTime = System.nanoTime()
 
-    // Wait until all packets are received
+    // 2. Main Wait
     waitUntil(sink.receivedCount >= packetCount)
 
     val endTime = System.nanoTime()
@@ -58,8 +56,9 @@ object perf_stress_test extends App {
 
     println(s"\n--- SW Perf Stress Test Results ---")
     println(s"Total Packets: ${sink.receivedCount}")
+    println(s"Latency Setting: $latencyVal ps")
     println(s"Sim Time:      $simDurationPs ps")
-    println(s"Wall Time:     $wallDurationMs ms")
+    println(s"Real Time:     $wallDurationMs ms")
 
     if (wallDurationMs > 0) {
       val simSpeed = (sink.receivedCount * 1000.0) / wallDurationMs

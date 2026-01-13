@@ -1,14 +1,14 @@
-package asap.perf.base
+package asap.tlm.base
 
-import asap.perf.types.packet
+import asap.tlm.types.packet
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class perf_sink(
+class tlm_sink(
     val name: String,
-    input: perf_fifo[packet],
+    input: tlm_fifo[packet],
     override val trace: Boolean = false
-) extends sim_component {
+) extends tlm_component {
   var receivedCount = 0
   var totalLatency = 0L
 

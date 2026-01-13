@@ -7,6 +7,7 @@ import spinal.lib.bus.amba4.axi._
 import asap.design._
 import asap.design.base._
 import asap.design.base.asap_config
+import asap.arch._
 
 object cxl_dram_test extends App {
   println("DEBUG: Object cxl_dram_test initialized")
@@ -25,7 +26,7 @@ object cxl_dram_test extends App {
       val axi = master(Axi4(config))
       val doneCycle = out Bool () // Pulses high when a sequence completes
     }
-    val inner = new simple_axi_master(config)
+    val inner = new arch_axi_master(config)
     io.axi <> inner.io.axi
 
     // Hack: Restart inner logic when it finishes?
@@ -118,7 +119,7 @@ object cxl_dram_test extends App {
     io.axi.b.ready := False
   }
 
-  class Top extends Component {
+  class CxlDramTop extends Component {
     val systemClkConfig =
       ClockDomainConfig(resetKind = SYNC, resetActiveLevel = HIGH)
     val clk = in Bool ()
@@ -137,10 +138,10 @@ object cxl_dram_test extends App {
       val host = new BenchmarkMaster(asap_config.axiConfig)
 
       // 2. CXL Link
-      val cxl = new CxlLink(latencyCycles = cxlLatCycles)
+      val cxl = new arch_cxl_link(latencyCycles = cxlLatCycles)
 
       // 3. DRAM Controller
-      val dram = new SimpleDramc(latencyCycles = dramLatCycles)
+      val dram = new arch_dramc(latencyCycles = dramLatCycles)
 
       // Connections
       host.io.axi >> cxl.io.upstream
@@ -151,7 +152,7 @@ object cxl_dram_test extends App {
     }
   }
 
-  SimConfig.compile(new Top).doSim { dut =>
+  SimConfig.compile(new CxlDramTop).doSim { dut =>
     dut.systemClk.forkStimulus(period = 1000)
     dut.systemClk.waitSampling(100)
 
@@ -181,11 +182,11 @@ object cxl_dram_test extends App {
 
     println(s"\n--- CXL Benchmark Results ---")
     println(s"Total Ops: $ops")
-    println(s"Wall Time: $durationMs ms")
+    println(s"Real Time: $durationMs ms")
     println(s"Sim Time: ${simDurationPs / 1e9} sec")
 
     val flowRate = (simDurationPs / 1e9) / (durationMs / 1000.0)
-    println(f"Flow Rate: ${flowRate * 1000}%.2f ms (Sim) / sec (Wall)")
+    println(f"Flow Rate: ${flowRate * 1000}%.2f ms (Sim) / sec (Real)")
 
     val engineSpeedMHz = (simDurationPs / 1000.0) / (durationMs * 1000.0)
     println(f"Engine Speed: $engineSpeedMHz%.2f MHz")

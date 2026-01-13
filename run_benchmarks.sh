@@ -42,7 +42,7 @@ case "$1" in
         run_test "rtl_massive" "rtl_massive_stress_test"
         ;;
     "sw")
-        run_test "perf_sw" "perf_stress_test"
+        run_test "tlm_sw" "tlm_stress_test"
         ;;
     "ssd")
         run_test "rtl_ssd" "ssd_architecture_test"
@@ -59,6 +59,7 @@ case "$1" in
         run_test "rtl_ssd" "ssd_architecture_test"
         run_test "rtl_write" "ssd_write_benchmark"
         run_test "rtl_cxl" "cxl_dram_test"
+        run_test "tlm_sw" "tlm_stress_test"
         ;;
     *)
         echo "Usage: $0 {pure|massive|ssd|write|cxl|sw|all}"

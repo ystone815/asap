@@ -1,13 +1,13 @@
-package asap.perf.base
+package asap.tlm.base
 
 import spinal.core.sim._
 import spinal.core.ClockDomain
 
-class perf_arbiter[T](
+class tlm_arbiter[T](
     val name: String,
-    inputs: Seq[perf_fifo[T]],
-    output: perf_fifo[T]
-) extends sim_component {
+    inputs: Seq[tlm_fifo[T]],
+    output: tlm_fifo[T]
+) extends tlm_component {
   private var rr_index = 0
 
   override def run(cd: ClockDomain): Unit = {

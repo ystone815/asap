@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 import asap.design.base.ram_delay_line
-import asap.design.simple_nand_model
+import asap.arch.arch_nand
 import scala.util.Random
 
 /** SSD Architecture Stress Test
@@ -25,7 +25,7 @@ object ssd_architecture_test extends App {
   val upstreamDelayCycles = 10000 // 10us
   val nandTRCycles = 20000 // 20us
 
-  class Top extends Component {
+  class SsdArchTop extends Component {
     val systemClkConfig =
       ClockDomainConfig(resetKind = SYNC, resetActiveLevel = HIGH)
     val clk = in Bool ()
@@ -95,7 +95,7 @@ object ssd_architecture_test extends App {
 
         // 3. 64 NAND Models
         val dieOutputs = for (d <- 0 until diesPerChannel) yield new Area {
-          val nand = new simple_nand_model(tR_cycles = nandTRCycles)
+          val nand = new arch_nand(tR_cycles = nandTRCycles)
           nand.io.cmd << diesCmd(d)
 
           // Result
@@ -133,7 +133,7 @@ object ssd_architecture_test extends App {
     }
   }
 
-  SimConfig.compile(new Top).doSim { dut =>
+  SimConfig.compile(new SsdArchTop).doSim { dut =>
     dut.systemClk.forkStimulus(period = 1000)
     dut.systemClk.waitSampling(100) // Wait for reset to complete
 
@@ -168,7 +168,7 @@ object ssd_architecture_test extends App {
 
     println(s"\n--- SSD Benchmark Results ---")
     println(s"Total Ops: $ops")
-    println(s"Wall Time: $durationMs ms")
+    println(s"Real Time: $durationMs ms")
     println(s"Sim Time:  ${simDurationPs / 1e9} sec")
 
     val sps = (ops * 1000.0) / durationMs
@@ -178,6 +178,6 @@ object ssd_architecture_test extends App {
     println(f"Engine Speed: $engineSpeedMHz%.2f MHz")
 
     val flowRate = (simDurationPs / 1e9) / (durationMs / 1000.0)
-    println(f"Flow Rate: ${flowRate * 1000}%.2f ms (Sim) / sec (Wall)")
+    println(f"Flow Rate: ${flowRate * 1000}%.2f ms (Sim) / sec (Real)")
   }
 }
