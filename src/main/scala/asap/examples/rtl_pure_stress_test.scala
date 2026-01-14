@@ -4,6 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 import asap.design.base.packet_bundle
+import asap.design.base.stream_monitor_rtl
 import asap.design.rtl_delay_line
 
 object rtl_pure_stress_test extends App {
@@ -58,6 +59,7 @@ object rtl_pure_stress_test extends App {
     )
 
     val receiveCount = out(UInt(32 bits))
+    val monitorCount = out(UInt(64 bits))
 
     val systemArea = new ClockingArea(systemClk) {
       val gen = new RtlGenerator()
@@ -80,6 +82,10 @@ object rtl_pure_stress_test extends App {
       delays.last.io.output >> sink.io.input
 
       receiveCount := sink.io.count
+
+      // Inline RTL Monitor
+      val monitor = stream_monitor_rtl.on(sink.io.input)
+      monitorCount := monitor.io.txCount
     }
   }
 
@@ -88,55 +94,55 @@ object rtl_pure_stress_test extends App {
     dut.systemClk.forkStimulus(period = 1000)
 
     println("Simulation started...")
-    val startTime = System.nanoTime()
+
+    val startTime = simTime()
+    val wallStartTime = System.nanoTime()
 
     var count = 0L
     while (count < targetPackets) {
       dut.systemClk.waitSampling(1000)
-      count = dut.receiveCount.toLong
+      count = dut.monitorCount.toBigInt.toLong
+      // Using monitorCount from RTL (simulating reading a register)
     }
 
-    val endTime = System.nanoTime()
-    val wallDurationMs = (endTime - startTime) / 1e6
-    // simTime() returns ps.
-    val simDurationPs = simTime()
+    val endTime = simTime()
+    val wallEndTime = System.nanoTime()
 
-    println(s"\n--- Pure RTL Stress Test Results ---")
+    val durationPs = endTime - startTime
+    val durationSec = durationPs / 1e12
+    val wallDurationNs = wallEndTime - wallStartTime
+    val wallDurationSec = wallDurationNs / 1e9
+
+    println(s"\n--- Pure RTL Stress Test Results (RTL Monitor) ---")
     println(s"Total Packets: $count")
-    println(s"Sim Time:      $simDurationPs ps")
-    println(s"Real Time:     $wallDurationMs ms")
+    println(f"Model Time:    ${durationPs / 1e9} ms")
+    println(f"Real Time:     ${wallDurationSec}%.3f sec")
 
-    if (wallDurationMs > 0) {
-      val simSpeed = (count * 1000.0) / wallDurationMs
-      println(
-        f"Sim Speed:     $simSpeed%.2f packets/sec (Real-time processing speed)"
-      )
-    }
+    val throughput = if (durationSec > 0) count / durationSec else 0.0
+    val simSpeed = if (wallDurationSec > 0) count / wallDurationSec else 0.0
 
-    if (simDurationPs > 0) {
-      val bandwidth = (count * 1e12) / simDurationPs
-      println(f"Model BW:      $bandwidth%.2f packets/sec (Logical throughput)")
-      println(f"               ${bandwidth / 1e9}%.2f Gpps")
+    println(f"Throughput:    $throughput%.2f Ops/sec (Logical)")
+    println(f"Sim Speed:     $simSpeed%.2f Ops/sec (Real Time)")
 
-      // Engine Speed (Cycles/sec)
-      // 1000 ps period = 1ns = 1 GHz clock.
-      // Total cycles = simDurationPs / 1000
-      val totalCycles = simDurationPs / 1000
-      val engineSpeed = (totalCycles * 1000.0) / wallDurationMs
+    println(s"--------------------------")
+
+    // Engine Speed (Cycles/sec)
+    if (durationPs > 0) {
+      val totalCycles = durationPs / 1000
+      val engineSpeed =
+        if (wallDurationSec > 0) totalCycles.toDouble / wallDurationSec else 0.0
+
+      // wallDurationMs for comparison
+      val wallDurationMs = wallDurationSec * 1000
+
       println(
         f"Engine Speed:  ${engineSpeed / 1e6}%.2f MHz (Simulated Clock Speed)"
       )
 
+      val simTimeMs = durationPs / 1e9
       val simRate =
-        simDurationPs / (wallDurationMs * 1e9) // (ps / ns) / 1e9 bad unit.
-      // Sim Sim Time (ms) per Wall Time (sec)
-      // simDurationPs / 1e9 = simDurationMs
-      // wallDurationMs / 1000 = wallDurationSec
-      val simTimeMs = simDurationPs / 1e9
-      val wallTimeSec = wallDurationMs / 1000.0
-      println(
-        f"Sim Rate:      ${simTimeMs / wallTimeSec}%.4f ms (Sim Time) / sec (Real Time)"
-      )
+        if (wallDurationSec > 0) simTimeMs / wallDurationSec else 0.0
+      println(f"Sim Rate:      ${simRate}%.4f ms (Sim Time) / sec (Real Time)")
     }
   }
 }
