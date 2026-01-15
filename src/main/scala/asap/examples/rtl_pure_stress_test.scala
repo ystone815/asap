@@ -29,6 +29,12 @@ object rtl_pure_stress_test extends App {
 
     when(io.output.ready) {
       counter := counter + 1
+
+      // RTL-based Printing (Synthesis-time check, Runtime Execution)
+      // Prints every 10,000th packet (Simulation Only)
+      when(counter % 10000 === 0) {
+        report(Seq("Generator Packet Sent: ID=", io.output.payload.id))
+      }
     }
   }
 
@@ -84,7 +90,7 @@ object rtl_pure_stress_test extends App {
       receiveCount := sink.io.count
 
       // Inline RTL Monitor
-      val monitor = stream_monitor_rtl.on(sink.io.input)
+      val monitor = stream_monitor_rtl.on(sink.io.input, logInterval = 10000)
       monitorCount := monitor.io.txCount
     }
   }
@@ -98,15 +104,29 @@ object rtl_pure_stress_test extends App {
     val startTime = simTime()
     val wallStartTime = System.nanoTime()
 
-    var count = 0L
-    while (count < targetPackets) {
+    // Start background logger (Removed - moved to RTL)
+    // asap.sim.sim_monitor_logger.log(...)
+
+    // Wait for Reset to deassert (forkStimulus default is 100 cycles)
+    dut.systemClk.waitSampling(100)
+
+    // Wait for target packets
+    println(s"Waiting for target: $targetPackets")
+    var currentCount = dut.monitorCount.toBigInt
+    while (currentCount < targetPackets) {
       dut.systemClk.waitSampling(1000)
-      count = dut.monitorCount.toBigInt.toLong
-      // Using monitorCount from RTL (simulating reading a register)
+      currentCount = dut.monitorCount.toBigInt
+      // println(s"Current: $currentCount") // Debug spam
     }
+    println(s"Finished waiting. Final: $currentCount")
 
     val endTime = simTime()
     val wallEndTime = System.nanoTime()
+
+    // Read final count for stats
+    // Ensure we read it safely
+    dut.systemClk.waitSampling(1)
+    val count = dut.monitorCount.toBigInt.toLong
 
     val durationPs = endTime - startTime
     val durationSec = durationPs / 1e12
